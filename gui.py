@@ -16,11 +16,13 @@ class RfqGen(tk.Tk):
         self.geometry("1000x500")
 
         self.data_base_conn = MieTrak()
-        # Getting customer names from Party Table in MieTrak. This list will go in combobox
-        self.customer_names = [customer[0] for customer in self.data_base_conn.execute_query("select name from party")]
 
-        # TODO: fix
-        # self.bind("<<Escape>>", lambda event: self.quit())
+        ## assign - sid : add display for customer, get pk, pull data from SQL to display in box. (start box from (2, 1)). 
+        ## task 2 - reorder the widgets in a way that make the most sense. 
+        self.customer_names = [customer[0] for customer in self.data_base_conn.execute_query("select name from party")]
+        query = "select partypk, name from party"
+        self.data = self.data_base_conn.execute_query(query)
+        self.customer_names = [d[1] for d in self.data]
 
         self.make_combobox()
 
@@ -37,16 +39,12 @@ class RfqGen(tk.Tk):
 
         # this should be at the bottom
         browse_button_1 = tk.Button(self, text="Browse Files", command=lambda: self.browse_files_parts_requested("Excel files", self.file_path_PR_entry))
-
-        # browse_button_1 = tk.Button(self, text="Browse Files", command=self.browse_files_parts_requested(filetype="Excel files"))
         browse_button_1.grid(row=4, column=0)
-
 
         #Selection/ Upload for PartList
         tk.Label(self, text="Part Lists File (PL)").grid(row=5, column=0)
         self.file_path_PL_entry = tk.Listbox(self, width=50)
         self.file_path_PL_entry.grid(row=6, column=0)
-
 
         browse_button_part_list = tk.Button(self, text="Browse Files", command= lambda: self.browse_files_parts_requested("All files", self.file_path_PL_entry))
         browse_button_part_list.grid(row=7, column=0)
@@ -93,8 +91,8 @@ class RfqGen(tk.Tk):
         """ Main function for Generating RFQ, adding line items and creating a quote """
         if self.customer_select_box.get() and self.file_path_PR_entry.get(0):
             # TODO: bind this box to fetch and update the party pk whenever the selection occurs or changes
-            all_party_pk = self.data_base_conn.execute_query("select PartyPK from Party where Name = ?", (self.customer_select_box.get(),))
-            self.party_pk = all_party_pk[0][0]
+            all_party_pk = self.data_base_conn.execute_query("select PartyPK from Party where Name = ?", (self.customer_select_box.get(),)) #TODO: update customer person name to get accurate partypk
+            self.party_pk = all_party_pk[0][0] #TODO: Fix this as it will always take the first party pk, we will display the nam
 
             #TODO: billing and shipping address need to be separate, 2nd and 3rd values
             billing_details = self.data_base_conn.get_address_of_party(self.party_pk)
@@ -142,18 +140,19 @@ class RfqGen(tk.Tk):
                         boeing_pdf_converter(path, f"{part_number}_raw_PL.txt")
                         capture_data(f"{part_number}_raw_PL.txt", f"{part_number}_PL.txt")
                 
-                dash_number = extract_dash_number(part_number)
-                result, part_info_list = extract_finish_codes_from_file(f"{part_number}_PL.txt", dash_number)
-                if result:
-                    print(f"Finish codes for part {part_number}: {result}")
-                    if part_info_list:
-                        print("Material Information:")
-                        for part_info in part_info_list:
-                            print(part_info)
-                    else:
-                        print("No material information available for this part.")
-                else:
-                    print(f"No Finish codes for {part_number}")
+                # TODO: FEATURE NOT COMPLETE, COMMENTED TO PUSH TO GIT
+                # dash_number = extract_dash_number(part_number)
+                # result, part_info_list = extract_finish_codes_from_file(f"{part_number}_PL.txt", dash_number)
+                # if result:
+                #     print(f"Finish codes for part {part_number}: {result}")
+                #     if part_info_list:
+                #         print("Material Information:")
+                #         for part_info in part_info_list:
+                #             print(part_info)
+                #     else:
+                #         print("No material information available for this part.")
+                # else:
+                #     print(f"No Finish codes for {part_number}")
 
                 # creating router
                 # router_pk = self.data_base_conn.create_router(self.party_pk, item_pk)
@@ -161,7 +160,7 @@ class RfqGen(tk.Tk):
                 # self.data_base_conn.router_work_center(router_pk)
         
             
-            messagebox.showinfo("Success", "RFQ generated successfully!") # TODO: Delete function
+            messagebox.showinfo("Success", f"RFQ generated successfully! RFQ Number - {rfq_pk}")
             # self.customer_select_box.delete(0, tk.END)
             self.file_path_PL_entry.delete(0, tk.END)
             self.file_path_PR_entry.delete(0, tk.END)

@@ -95,40 +95,26 @@ class MieTrak:
         query = (f"INSERT INTO DOCUMENT (URL, {"RequestForQuoteFK" if item_fk is None else "ItemFk"}, Active) VALUES ("
                  f"?,?,?)")
         self.cursor.execute(query, (document_path, val, 1))
-        # print(query)
-        # print(document_path)
-        # print("-"*50)
         self.conn.commit()
 
     def get_or_create_item(self, part_number: str):
         query = "select ItemPk from item where PartNumber=(?)"
         result = self.cursor.execute(query, (part_number)).fetchone()
-        # print("Result:", result)
         if result:
-            # print("itempk = ", result[0])
-            # print("*"*50)
             return result[0]
         else:
             item_inventory_pk = self.create_item_inventory()
-            # print("IIPK:",item_inventory_pk)
             query = "insert into item (ItemInventoryFk, PartNumber, ItemTypeFK) VALUES (?, ?, ?)"
             self.cursor.execute(query, (item_inventory_pk, part_number, 1))
-            # insert into item inventory as well
             self.conn.commit()
             result = self.cursor.execute(f"select ItemPK from item where PartNumber = '{part_number}'").fetchall()
-            # print(result)
-            # print("itempk:", result[0][0])
             return result[0][0]
-        # TODO: new item not showing in line item at first.
+        
     def create_item_inventory(self):  # HELPER FUNC
         self.cursor.execute("insert into ItemInventory (QuantityOnHand) values (0.000)")
         self.conn.commit()
-        # print(" Inventorypk: ",self.cursor.execute("select ItemInventoryPK from ItemInventory").fetchall())
         return self.cursor.execute("select ItemInventoryPK from ItemInventory").fetchall()[-1][0]
     
-    # def insert_docs_to_rfq(self, document_paths):
-    #     for path in document_paths:
-
     def create_rfq_line_item(self, item_fk: int, request_for_quote_fk: int, line_reference_number: int, quote_fk: int):
         query = "INSERT INTO RequestForQuoteLine (ItemFK, RequestForQuoteFK, LineReferenceNumber, QuoteFK) VALUES (?,?,?,?)"
         self.cursor.execute(query, (item_fk, request_for_quote_fk, line_reference_number, quote_fk))
@@ -139,12 +125,11 @@ class MieTrak:
         query = "INSERT INTO Quote (CustomerFK, ItemFK, QuoteType, PartNumber, DivisionFK) VALUES (?,?,?,?,?) "
         self.cursor.execute(query, (customer_fk, item_fk, quote_type, part_number, division_fk))
         self.conn.commit()
-        # print(self.cursor.execute("SELECT QuotePK from Quote").fetchall()[-1][0])
         return self.cursor.execute("SELECT QuotePK from Quote").fetchall()[-1][0]
     
     def quote_operations_template(self):
         self.all_columns = self.get_columns_quote()
-        query = f"SELECT {self.all_columns} FROM QuoteAssembly WHERE QuoteFK = 494"
+        query = f"SELECT {self.all_columns} FROM QuoteAssembly WHERE QuoteFK = 494 and ItemFk IS NULL "
         template = self.execute_query(query)
         return template
     
@@ -165,7 +150,14 @@ class MieTrak:
             query = f"INSERT INTO QuoteAssembly (QuoteFK, {self.all_columns}) VALUES ({','.join(['?']*(len(data)+1))})"
             self.cursor.execute(query, (quote_fk,) + tuple(data))
             self.conn.commit()
+    
+    def get_party_person(self, party_pk):
+        query = "SELECT ShortName, Email from Party where PartyPK = ?"
+        results = self.execute_query(query, party_pk)
+        return results[0]
+    
 
+    # TODO: Updates for Version2
     # def create_router(self, customer_fk, item_fk):
     #     """ """
     #     division_fk = 1

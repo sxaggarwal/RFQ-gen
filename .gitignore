@@ -1,4 +1,4 @@
 __pycache__/
 *.txt
-separating_file.py
 .idea/
+main.py

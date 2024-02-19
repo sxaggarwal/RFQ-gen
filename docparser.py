@@ -25,7 +25,4 @@ def get_headers(parsed_text_file):
                         "Rev": header_list[6]}
             return headers
 
-if __name__ == "__main__":
-    # boeing_pdf_converter(r"M:\docparser\testing_pdfs\PSE_112T1750_PL__AC_COM___PROPER_1_TO_135.pdf", "test_raw_file1")
-    boeing_pdf_converter(r"Y:/PDM/Non-restricted/BOEING/B02-20289-1/B02-20289_PL_Sht+1.pdf", "test_raw_file2")
     

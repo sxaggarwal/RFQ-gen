@@ -38,19 +38,3 @@ def extract_dash_number(part_number):
         dash_number = match.group(0)
     return dash_number
 
-# Example usage:
-# file_path = "example.txt"  # Provide the file path here
-# part_number_to_search = "1234"  # Provide the part number here
-
-# result, part_info_list = extract_finish_codes_from_file(file_path, part_number_to_search)
-
-# if result:
-#     print(f"Finish codes for part {part_number_to_search}: {result}")
-#     if part_info_list:
-#         print("Material Information:")
-#         for part_info in part_info_list:
-#             print(part_info)
-#     else:
-#         print("No material information available for this part.")
-# else:
-#     print(f"No Finish codes for {part_number_to_search}")

@@ -1,4 +1,3 @@
-# write a script WITHOUT if __name__ == "__main__" so that it runs on import 
 import pandas as pd
 
 
