@@ -24,9 +24,18 @@ class MieTrak:
     # TODO: also pull billing address, if no billing address then use the same as shipping
     # TODO: make it more robust, raw ideas as of now
     def get_address_of_party(self, party_fk: int):
-        """Gets the address of the party selected using PartFK"""
+        """Gets the address of the party selected using PartyFK"""
         query = " SELECT AddressPK, Name, Address1, Address2, AddressAlt, City, ZipCode FROM Address WHERE PartyFK = ? "
         return self.execute_query(query, party_fk)[0]
+    
+    def get_state_and_country(self, party_fk):
+        """ """
+        query = " Select StateFK, CountryFK FROM Address where PartyFK = ?"
+        info = self.execute_query(query, party_fk)
+        state_fk, country_fk = info[0]
+        state = self.execute_query("Select Description FROM State WHERE StatePK = ?", state_fk)
+        country = self.execute_query("SELECT Description FROM Country WHERE CountryPK = ?", country_fk)
+        return state, country
 
     def insert_into_rfq(self, 
                         customer_fk,
@@ -38,19 +47,21 @@ class MieTrak:
                         address_alt,
                         city, 
                         zip_code,
+                        state,
+                        country,
+                        customer_rfq_number = None,
                         division_fk=1,
                         received_purchase_order=0,
                         no_bid=0,
                         did_not_get=0,
                         mie_exchange=0,
                         sales_tax_on_freight=0,
-                        request_for_quote_status_fk=1,
-                        ):
+                        request_for_quote_status_fk=1, ):
         query = ("insert into RequestForQuote (CustomerFK, BillingAddressFK, ShippingAddressFK, DivisionFK, "
                  "ReceivedPurchaseOrder, NoBid, DidNotGet, MIEExchange, SalesTaxOnFreight, RequestForQuoteStatusFK, "
                  "BillingAddressName, BillingAddress1, BillingAddress2, BillingAddressAlt, BillingAddressCity, "
                  "BillingAddressZipCode, ShippingAddressName, ShippingAddress1, ShippingAddress2, ShippingAddressAlt, "
-                 "ShippingAddressCity, ShippingAddressZipCode) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+                 "ShippingAddressCity, ShippingAddressZipCode, BillingAddressStateDescription, BillingAddressCountryDescription, ShippingAddressStateDescription, ShippingAddressCountryDescription, CustomerRequestForQuoteNumber) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
         try:
             self.cursor.execute(query, (
                         customer_fk,
@@ -75,7 +86,11 @@ class MieTrak:
                         address_alt,
                         city, 
                         zip_code,
-                        
+                        state,
+                        country,
+                        state,
+                        country,
+                        customer_rfq_number
             ))
             self.conn.commit()  # Commit the transaction for changes to take effect
         except pyodbc.Error as e:
@@ -85,6 +100,7 @@ class MieTrak:
         """Extracting the primary key where the data was inserted in RFQ"""
         query = "SELECT RequestForQuotePK FROM RequestForQuote"
         results = self.execute_query(query)
+        # print(results)
         return results[-9][0]
 
     def upload_documents(self, document_path: str, rfq_fk=None, item_fk=None):
@@ -97,15 +113,15 @@ class MieTrak:
         self.cursor.execute(query, (document_path, val, 1))
         self.conn.commit()
 
-    def get_or_create_item(self, part_number: str):
+    def get_or_create_item(self, part_number: str, description = None):
         query = "select ItemPk from item where PartNumber=(?)"
         result = self.cursor.execute(query, (part_number)).fetchone()
         if result:
             return result[0]
         else:
             item_inventory_pk = self.create_item_inventory()
-            query = "insert into item (ItemInventoryFk, PartNumber, ItemTypeFK) VALUES (?, ?, ?)"
-            self.cursor.execute(query, (item_inventory_pk, part_number, 1))
+            query = "insert into item (ItemInventoryFk, PartNumber, ItemTypeFK, Description) VALUES (?, ?, ?, ?)"
+            self.cursor.execute(query, (item_inventory_pk, part_number, 1, description))
             self.conn.commit()
             result = self.cursor.execute(f"select ItemPK from item where PartNumber = '{part_number}'").fetchall()
             return result[0][0]
@@ -132,7 +148,7 @@ class MieTrak:
         query = f"SELECT {self.all_columns} FROM QuoteAssembly WHERE QuoteFK = 494 and ItemFk IS NULL "
         template = self.execute_query(query)
         return template
-    
+
     def get_columns_quote(self):
         query = f'''
             SELECT COLUMN_NAME

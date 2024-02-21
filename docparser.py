@@ -6,7 +6,7 @@ FILEPATH = r"Y:\Estimating\Non-restricted\SPIRIT\RFE 141776P\ENGINEERING\313W315
 def boeing_pdf_converter(input_filepath, output_filename):  #TODO: args taken from the terminal
     """PDF -> txt file: maintains the correct format of the pdf"""
     with fitz.open(input_filepath) as doc:
-        print(doc[1].get_text())
+        # print(doc[1].get_text())
         text = chr(12).join([page.get_text() for page in doc])
 
     pathlib.Path(output_filename).write_bytes(text.encode())
