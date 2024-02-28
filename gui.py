@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from src.pull_excel_data import extract_from_excel
 import os, shutil
+from src.part_info_dict import pk_info_dict
 from src.docparser import boeing_pdf_converter
 from src.seperating_file import get_pl_path
 from src.data_cleaner_boeing import capture_data
@@ -137,8 +138,10 @@ class RfqGen(tk.Tk):
             destination_paths = []
             i = 1
             y = 1
-            my_dict = {'N536T5506-204-00': [102990, 102999, None], 'N533T5501-200-00': [102961, 102996, None], 'N533T5501-201-00': [102962, None, None], 'N533T5501-202-00': [102963, None, None], 'N533T5501-204-00': [102964, None, None], 'N533T5501-205-00': [102965, None, None], 'N533T5501-206-00': [102966, None, None], 'N533T5501-207-00': [102967, None, None], 'N533T5503-200-00': [102968, None, None], 'N533T5503-202-00': [102969, None, None], 'N533T5503-204-00': [102970, None, None], 'N533T5503-206-00': [102971, None, None], 'N533T5506-202-00': [102972, None, None], 'N533T5506-203-00': [102973, 102997, None], 'N536T5501-200-00': [102974, 102998, None], 'N536T5501-202-00': [102975, None, 103019], 'N536T5501-204-00': [102976, None, 103020], 'N536T5501-206-00': [102977, None, 103021], 'N536T5501-208-00': [102978, None, 103022], 'N536T5501-210-00': [102979, None, 103023], 'N536T5501-212-00': [102980, None, 103024], 'N536T5501-213-00': [102981, None, 103025], 'N536T5501-214-00': [102982, None, 103026], 'N536T5501-215-00': [102983, None, 103027], 'N536T5503-200-00': [102984, None, 103028], 'N536T5503-202-00': [102985, None, 103029], 'N536T5503-204-00': [102986, None, 103030], 'N536T5503-206-00': [102987, None, 103031], 'N536T5503-208-00': [102988, None, 103032], 'N536T5506-202-00': [102989, None, 103033]}
-            
+            # my_dict = {'N536T5506-204-00': [102990, 102999, None], 'N533T5501-200-00': [102961, 102996, None], 'N533T5501-201-00': [102962, None, None], 'N533T5501-202-00': [102963, None, None], 'N533T5501-204-00': [102964, None, None], 'N533T5501-205-00': [102965, None, None], 'N533T5501-206-00': [102966, None, None], 'N533T5501-207-00': [102967, None, None], 'N533T5503-200-00': [102968, None, None], 'N533T5503-202-00': [102969, None, None], 'N533T5503-204-00': [102970, None, None], 'N533T5503-206-00': [102971, None, None], 'N533T5506-202-00': [102972, None, None], 'N533T5506-203-00': [102973, 102997, None], 'N536T5501-200-00': [102974, 102998, None], 'N536T5501-202-00': [102975, None, 103019], 'N536T5501-204-00': [102976, None, 103020], 'N536T5501-206-00': [102977, None, 103021], 'N536T5501-208-00': [102978, None, 103022], 'N536T5501-210-00': [102979, None, 103023], 'N536T5501-212-00': [102980, None, 103024], 'N536T5501-213-00': [102981, None, 103025], 'N536T5501-214-00': [102982, None, 103026], 'N536T5501-215-00': [102983, None, 103027], 'N536T5503-200-00': [102984, None, 103028], 'N536T5503-202-00': [102985, None, 103029], 'N536T5503-204-00': [102986, None, 103030], 'N536T5503-206-00': [102987, None, 103031], 'N536T5503-208-00': [102988, None, 103032], 'N536T5506-202-00': [102989, None, 103033]}
+            my_dict = pk_info_dict(self.file_path_PR_entry.get(0, tk.END)[0])
+            print(my_dict)
+
             parts = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "Part")
             # parts = [value for value in parts_rough if value is not nan] #There are some values as 'nan' because of the excel formatting so removing that.
             descriptions = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "DESCRIPTION")
