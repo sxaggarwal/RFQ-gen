@@ -1,13 +1,13 @@
 # all tkinter modules that go on the screen
-from Mie_trak_connection import MieTrak
+from src.Mie_trak_connection import MieTrak
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
-from pull_excel_data import extract_from_excel
+from src.pull_excel_data import extract_from_excel
 import os, shutil
-from docparser import boeing_pdf_converter
-from seperating_file import get_pl_path
-from data_cleaner_boeing import capture_data
-from extract_data_from_pl import extract_finish_codes_from_file, extract_dash_number
+from src.docparser import boeing_pdf_converter
+from src.seperating_file import get_pl_path
+from src.data_cleaner_boeing import capture_data
+from src.extract_data_from_pl import extract_finish_codes_from_file, extract_dash_number
 
 class RfqGen(tk.Tk):
     def __init__(self):
@@ -122,16 +122,12 @@ class RfqGen(tk.Tk):
         """ Main function for Generating RFQ, adding line items and creating a quote """
         if self.customer_select_box.get() and self.file_path_PR_entry.get(0):
             self.output_text.delete(1.0, tk.END)
-            # TODO: bind this box to fetch and update the party pk whenever the selection occurs or changes
-            # all_party_pk = self.data_base_conn.execute_query("select PartyPK from Party where Name = ?", (self.customer_select_box.get(),))
             party_pk = self.selected_customer_partypk
-
-            #TODO: billing and shipping address need to be separate, 2nd and 3rd values
             billing_details = self.data_base_conn.get_address_of_party(party_pk)
             state, country = self.data_base_conn.get_state_and_country(party_pk)
             
             self.data_base_conn.insert_into_rfq(
-                party_pk, billing_details[0], billing_details[0], billing_details[1], billing_details[2], billing_details[3], billing_details[4], billing_details[5], billing_details[6], state[0], country[0]
+                party_pk, billing_details[0], billing_details[0], billing_details[1], billing_details[2], billing_details[3], billing_details[4], billing_details[5], billing_details[6], state[0][0], country[0][0]
             )
 
             rfq_pk = self.data_base_conn.get_rfq_pk()
@@ -140,7 +136,16 @@ class RfqGen(tk.Tk):
 
             destination_paths = []
             i = 1
-            for part_number in extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "PartNumber"):
+            y = 1
+            my_dict = {'N536T5506-204-00': [102990, 102999, None], 'N533T5501-200-00': [102961, 102996, None], 'N533T5501-201-00': [102962, None, None], 'N533T5501-202-00': [102963, None, None], 'N533T5501-204-00': [102964, None, None], 'N533T5501-205-00': [102965, None, None], 'N533T5501-206-00': [102966, None, None], 'N533T5501-207-00': [102967, None, None], 'N533T5503-200-00': [102968, None, None], 'N533T5503-202-00': [102969, None, None], 'N533T5503-204-00': [102970, None, None], 'N533T5503-206-00': [102971, None, None], 'N533T5506-202-00': [102972, None, None], 'N533T5506-203-00': [102973, 102997, None], 'N536T5501-200-00': [102974, 102998, None], 'N536T5501-202-00': [102975, None, 103019], 'N536T5501-204-00': [102976, None, 103020], 'N536T5501-206-00': [102977, None, 103021], 'N536T5501-208-00': [102978, None, 103022], 'N536T5501-210-00': [102979, None, 103023], 'N536T5501-212-00': [102980, None, 103024], 'N536T5501-213-00': [102981, None, 103025], 'N536T5501-214-00': [102982, None, 103026], 'N536T5501-215-00': [102983, None, 103027], 'N536T5503-200-00': [102984, None, 103028], 'N536T5503-202-00': [102985, None, 103029], 'N536T5503-204-00': [102986, None, 103030], 'N536T5503-206-00': [102987, None, 103031], 'N536T5503-208-00': [102988, None, 103032], 'N536T5506-202-00': [102989, None, 103033]}
+            
+            parts = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "Part")
+            # parts = [value for value in parts_rough if value is not nan] #There are some values as 'nan' because of the excel formatting so removing that.
+            descriptions = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "DESCRIPTION")
+            # descriptions = [value for value in descriptions_rough if value is not nan]
+            part_description_data = dict(zip(parts, descriptions))
+
+            for part_number, description in part_description_data.items():
                 destination_path = rf'y:\PDM\Non-restricted\{self.customer_select_box.get()}\{part_number}'
                 for file in user_selected_file_paths:
                     # folder is get or created and file is copied to this folder
@@ -149,10 +154,7 @@ class RfqGen(tk.Tk):
                     destination_paths.append(file_path_to_add_to_rfq)
                     self.data_base_conn.upload_documents(file_path_to_add_to_rfq, rfq_fk=rfq_pk)
 
-                # print(destination_paths)
-                # part_list_path = [path for path in destination_path if 'PL' ]
-
-                item_pk = self.data_base_conn.get_or_create_item(part_number)
+                item_pk = self.data_base_conn.get_or_create_item(part_number, description= description)
                 matching_paths = [path for path in destination_paths if part_number in path]
                 # print(matching_paths)
 
@@ -163,32 +165,47 @@ class RfqGen(tk.Tk):
                 quote_pk = self.data_base_conn.create_quote(party_pk, item_pk, 0, part_number)
                 self.data_base_conn.quote_operation(quote_pk)
 
-                # adding line items to rfq
+                a = [6,21,22] #  IssueMat, HT, FIN
+                quote_assembly_fk = []
+                # TODO: get the quote assembly pk for finish and heat treat and material issue. (22,21 and 6) [match with sequence number and quotefk = quotepk]
+                for x in a:
+                    quote_assembly_pk = self.data_base_conn.execute_query(f"SELECT QuoteAssemblyPK FROM QuoteAssembly WHERE QuoteFK = {quote_pk} AND SequenceNumber = {x}")
+                    # print(quote_assembly_pk)
+                    quote_assembly_fk.append(quote_assembly_pk[0][0])
+                
                 self.data_base_conn.create_rfq_line_item(item_pk, rfq_pk, i, quote_pk)
                 i+=1
 
+                if part_number in my_dict:
+                    dict_values = my_dict[part_number]
+                    for j,k,l in zip(dict_values, quote_assembly_fk, a):
+                        # print(j,k,l)
+                        if j != None:
+                            self.data_base_conn.create_bom_quote(quote_pk, j, k, l, y)
+                            y+=1
+
                 # TODO: Converting and cleanning a pdf.
-                paths_with_pl = get_pl_path(destination_paths)
-                for path in paths_with_pl:
-                    if part_number in path:
-                        boeing_pdf_converter(path, f"{part_number}_raw_PL.txt")
-                        capture_data(f"{part_number}_raw_PL.txt", f"{part_number}_PL.txt")
+                # paths_with_pl = get_pl_path(destination_paths)
+                # for path in paths_with_pl:
+                #     if part_number in path:
+                #         boeing_pdf_converter(path, f"{part_number}_raw_PL.txt")
+                #         capture_data(f"{part_number}_raw_PL.txt", f"{part_number}_PL.txt")
                 
-                # TODO: FEATURE NOT COMPLETE, COMMENTED TO PUSH TO GIT
-                dash_number = extract_dash_number(part_number)
-                result, part_info_list = extract_finish_codes_from_file(f"{part_number}_PL.txt", dash_number)
-                if result:
-                    output_message = f"Finish codes for part {part_number}: {result}\n"
-                    if part_info_list:
-                        output_message += "Material Information:\n"
-                        for part_info in part_info_list:
-                            output_message += f"{part_info}\n"
-                    else:
-                        output_message += "No material information available for this part.\n"
-                else:
-                    output_message = f"No Finish codes for {part_number}\n"
+                # # TODO: FEATURE NOT COMPLETE, COMMENTED TO PUSH TO GIT
+                # dash_number = extract_dash_number(part_number)
+                # result, part_info_list = extract_finish_codes_from_file(f"{part_number}_PL.txt", dash_number)
+                # if result:
+                #     output_message = f"Finish codes for part {part_number}: {result}\n"
+                #     if part_info_list:
+                #         output_message += "Material Information:\n"
+                #         for part_info in part_info_list:
+                #             output_message += f"{part_info}\n"
+                #     else:
+                #         output_message += "No material information available for this part.\n"
+                # else:
+                #     output_message = f"No Finish codes for {part_number}\n"
                 
-                self.output_text.insert(tk.END, output_message)
+                # self.output_text.insert(tk.END, output_message)
 
                 # creating router
                 # router_pk = self.data_base_conn.create_router(party_pk, item_pk)
@@ -210,5 +227,4 @@ class RfqGen(tk.Tk):
 
 if __name__ == "__main__":
     r = RfqGen()
-
     r.mainloop()

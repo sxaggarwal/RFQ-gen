@@ -3,3 +3,5 @@ __pycache__/
 .idea/
 main.py
 structure.py
+sonaca_honda.py
+flammability_test.py

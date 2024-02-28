@@ -1,3 +1,5 @@
+# Extracting the paths of PL documents from all the selected  Documents
+
 import os
 import re
 

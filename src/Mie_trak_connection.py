@@ -33,8 +33,14 @@ class MieTrak:
         query = " Select StateFK, CountryFK FROM Address where PartyFK = ?"
         info = self.execute_query(query, party_fk)
         state_fk, country_fk = info[0]
-        state = self.execute_query("Select Description FROM State WHERE StatePK = ?", state_fk)
-        country = self.execute_query("SELECT Description FROM Country WHERE CountryPK = ?", country_fk)
+        if state_fk:
+            state = self.execute_query("Select Description FROM State WHERE StatePK = ?", state_fk)
+        else: 
+            state = [(None,),] 
+        if country_fk:    
+            country = self.execute_query("SELECT Description FROM Country WHERE CountryPK = ?", country_fk)
+        else:
+            country = [(None,),] 
         return state, country
 
     def insert_into_rfq(self, 
@@ -101,7 +107,7 @@ class MieTrak:
         query = "SELECT RequestForQuotePK FROM RequestForQuote"
         results = self.execute_query(query)
         # print(results)
-        return results[-9][0]
+        return results[-1][0]
 
     def upload_documents(self, document_path: str, rfq_fk=None, item_fk=None):
         if not rfq_fk and not item_fk:
@@ -173,6 +179,38 @@ class MieTrak:
         return results[0]
     
 
+    def create_bom_quote(self, quote_fk, item_fk, quote_assembly_seq_number_fk, sequence_number, order_by,
+                        party_fk=None, tool=0, stop_sequence=0, unit_of_measure_set_fk=1, setup_time = 0.00, scrape_rebate = 0.000,
+                        part_width = 0.00, part_length = 0.000, parts_required = 1.000, quantity_reqd = 1.000, min_piece_price = 0.00,
+                        parts_per_blank_scrap_percentage = 0.000, markup_percentage_1 = 9.999999, piece_weight = 0.000, custom_piece_weight = 0.0000, 
+                        piece_cost = 0.0000, piece_price = 0.00000, stock_pieces =0, stock_pices_scrap_perc = 0.000, 
+                        calculation_type_fk=17, unattended_operation=0, do_not_use_delivery_schedule=0,
+                        vendor_unit=1.00000, grain_direction=0, parts_per_blank=1.000,
+                        against_grain=0, double_sided=0, cert_reqd=0, non_amortized_item=0,
+                        pull=0, not_include_in_piece_price=0, lock=0, nestable=0,
+                        bulk_ship=0, ship_loose=0, customer_supplied_material=0):
+        query = "INSERT INTO QuoteAssembly (QuoteFK, ItemFK, PartyFK, UnitofMeasureSetFK, CalculationTypeFK, " \
+                "Tool, StopSequence, SequenceNumber, QuoteAssemblySeqNumberFK, UnattendedOperation, " \
+                "DoNotUseDeliverySchedule, VendorUnit, GrainDirection, PartsPerBlank, AgainstGrain, " \
+                "DoubleSided, CertificationsRequired, NonAmortizedItem, Pull, NotIncludeInPiecePrice, " \
+                "Lock, Nestable, BulkShip, ShipLoose, CustomerSuppliedMaterial, OrderBy, SetupTime, ScrapRebate, PartWidth, PartLength, PartsRequired, QuantityRequired, MinimumPiecePrice,  " \
+                "PartsPerBlankScrapPercentage, MarkupPercentage1, PieceWeight, CustomPieceWeight, PieceCost, PiecePrice, StockPieces, StockPiecesScrapPercentage) " \
+                "VALUES ({})".format(','.join(['?']*41))
+        try:
+            self.cursor.execute(query, (quote_fk, item_fk, party_fk, unit_of_measure_set_fk,
+                                        calculation_type_fk, tool, stop_sequence, sequence_number,
+                                        quote_assembly_seq_number_fk, unattended_operation,
+                                        do_not_use_delivery_schedule, vendor_unit, grain_direction,
+                                        parts_per_blank, against_grain, double_sided, cert_reqd,
+                                        non_amortized_item, pull, not_include_in_piece_price, lock,
+                                        nestable, bulk_ship, ship_loose, customer_supplied_material, order_by, setup_time, scrape_rebate, part_width, part_length, parts_required, quantity_reqd, min_piece_price,
+                                        parts_per_blank_scrap_percentage, markup_percentage_1, piece_weight, custom_piece_weight, piece_cost,
+                                        piece_price, stock_pieces, stock_pices_scrap_perc))
+            self.conn.commit()  # Commit the transaction for changes to take effect
+        except pyodbc.Error as e:
+            print(e)
+
+        
     # TODO: Updates for Version2
     # def create_router(self, customer_fk, item_fk):
     #     """ """

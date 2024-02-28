@@ -1,3 +1,5 @@
+#Cleans a boeing part list pdf 
+
 import re
 
 def capture_data(filepath, outpath):

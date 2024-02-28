@@ -1,3 +1,5 @@
+# Function for extracting data from Boeing PL (Mat, Fin)
+
 import re
 
 def extract_finish_codes_from_file(file_path, dash_number):

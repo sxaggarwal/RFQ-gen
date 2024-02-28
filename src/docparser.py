@@ -1,3 +1,5 @@
+# function for converting pdf to txt
+
 import fitz, pathlib, logging
 
 FILEPATH = r"Y:\Estimating\Non-restricted\SPIRIT\RFE 141776P\ENGINEERING\313W3153-7.pdf"
