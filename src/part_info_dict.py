@@ -1,5 +1,10 @@
+#Functions for getting dictionary. 1st one gives a dictionary with itempk for MAT, FIN, HT
+# 2nd one gives dictionary for other information of a part such as Dimensions, Drawing Number
+# key for both the dictionary is part number 
+
 from src.pull_excel_data import extract_from_excel
 from src.Mie_trak_connection import MieTrak
+import math
 
 data_base_conn = MieTrak()
 
@@ -14,6 +19,9 @@ def pk_info_dict(filepath):
         mat_pk = None
         fin_pk = None
         ht_pk = None
+        a = None if isinstance(a, float) and math.isnan(a) else a
+        b = None if isinstance(b, float) and math.isnan(b) else b
+        c = None if isinstance(c, float) and math.isnan(c) else c
 
         if a:
             result = data_base_conn.execute_query("Select ItemPK from Item where PartNumber = ?", (a,))
@@ -38,3 +46,26 @@ def pk_info_dict(filepath):
         my_dict[d] = (mat_pk, ht_pk, fin_pk)
 
     return my_dict
+
+def part_info(filepath):
+    part_number = extract_from_excel(filepath, "Part")
+    length = extract_from_excel(filepath, "Length")
+    thickness = extract_from_excel(filepath, "Thickness")
+    width = extract_from_excel(filepath, "Width")
+    weight = extract_from_excel(filepath, "Weight")
+    drawing_number = extract_from_excel(filepath, "DrawingNumber")
+    drawing_revision = extract_from_excel(filepath, "DrawingRevision")
+
+    info_dict = {}
+    for a, b, c, d, e, f, g in zip(part_number, length, thickness, width, weight, drawing_number, drawing_revision):
+        # Replace NaN values with None
+        b = None if isinstance(b, float) and math.isnan(b) else b
+        c = None if isinstance(c, float) and math.isnan(c) else c
+        d = None if isinstance(d, float) and math.isnan(d) else d
+        e = None if isinstance(e, float) and math.isnan(e) else e
+        f = None if isinstance(f, float) and math.isnan(f) else f
+        g = None if isinstance(g, float) and math.isnan(g) else g
+        
+        info_dict[a] = (b, c, d, e, f, g) 
+    
+    return info_dict

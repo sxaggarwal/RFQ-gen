@@ -21,8 +21,6 @@ class MieTrak:
             print(f"Error executing query: {query}\nError: {e}")
             return None
 
-    # TODO: also pull billing address, if no billing address then use the same as shipping
-    # TODO: make it more robust, raw ideas as of now
     def get_address_of_party(self, party_fk: int):
         """Gets the address of the party selected using PartyFK"""
         query = " SELECT AddressPK, Name, Address1, Address2, AddressAlt, City, ZipCode FROM Address WHERE PartyFK = ? "
@@ -106,7 +104,6 @@ class MieTrak:
         """Extracting the primary key where the data was inserted in RFQ"""
         query = "SELECT RequestForQuotePK FROM RequestForQuote"
         results = self.execute_query(query)
-        # print(results)
         return results[-1][0]
 
     def upload_documents(self, document_path: str, rfq_fk=None, item_fk=None):
@@ -137,6 +134,20 @@ class MieTrak:
         self.conn.commit()
         return self.cursor.execute("select ItemInventoryPK from ItemInventory").fetchall()[-1][0]
     
+    def insert_part_details_in_item(self, item_pk, values):
+        """
+        Insert values into the Item table where ItemPK = item_pk.
+        :param item_pk: The ItemPK to identify the item.
+        :param values: A tuple containing the values to be inserted.
+        """
+        try:
+            query = "UPDATE Item SET StockLength=?, Thickness=?, StockWidth=?, Weight=?, DrawingNumber=?, DrawingRevision=? WHERE ItemPK = ?"
+            parameters = values + (item_pk,)
+            self.cursor.execute(query, parameters)
+            self.conn.commit()
+        except pyodbc.Error as e:
+            print(f"Error inserting values into Item table: {e}")
+
     def create_rfq_line_item(self, item_fk: int, request_for_quote_fk: int, line_reference_number: int, quote_fk: int):
         query = "INSERT INTO RequestForQuoteLine (ItemFK, RequestForQuoteFK, LineReferenceNumber, QuoteFK) VALUES (?,?,?,?)"
         self.cursor.execute(query, (item_fk, request_for_quote_fk, line_reference_number, quote_fk))
