@@ -12,7 +12,7 @@ class RfqGen(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title = "RFQGen"
-        self.geometry("600x400")
+        self.geometry("305x400")
 
         self.data_base_conn = MieTrak() 
         self.customer_names = [customer[0] for customer in self.data_base_conn.execute_query("select name from party")]
@@ -24,41 +24,43 @@ class RfqGen(tk.Tk):
         self.make_combobox()
 
     def make_combobox(self):
+
         # Customer select combobox
         tk.Label(self, text="Select Customer: ").grid(row=0, column=0)
         self.customer_select_box = ttk.Combobox(self, values=self.customer_names, state = "readonly")
         self.customer_select_box.grid(row=1, column=0)
         
+        tk.Label(self, text="Selected Customer Info: ").grid(row=2, column=0)
         self.customer_info_text = tk.Text(self, height=4, width = 30)
-        self.customer_info_text.grid(row=5, column=1)
+        self.customer_info_text.grid(row=3, column=0)
 
-        tk.Label(self, text="Enter RFQ Number: ").grid(row=0, column=1)
+        tk.Label(self, text="Enter RFQ Number: ").grid(row=4, column=0)
         self.rfq_number_text = tk.Entry(self, width = 20)
-        self.rfq_number_text.grid(row = 1, column =1 )
+        self.rfq_number_text.grid(row = 5, column =0 )
 
         # Bind the combobox selection event to update customer information
         self.customer_select_box.bind("<<ComboboxSelected>>", self.update_customer_info)
 
         # Entrybox for the requested parts in an excel file. (upload for excel file) 
-        tk.Label(self, text="Parts Requested File").grid(row=2, column=0)
+        tk.Label(self, text="Parts Requested File:").grid(row=6, column=0)
         self.file_path_PR_entry = tk.Listbox(self, height=2, width = 50)
-        self.file_path_PR_entry.grid(row=3, column=0)
+        self.file_path_PR_entry.grid(row=7, column=0)
 
         # this should be at the bottom
         browse_button_1 = tk.Button(self, text="Browse Files", command=lambda: self.browse_files_parts_requested("Excel files", self.file_path_PR_entry))
-        browse_button_1.grid(row=4, column=0)
+        browse_button_1.grid(row=8, column=0)
 
         #Selection/ Upload for PartList
-        tk.Label(self, text="Part Lists File (PL)").grid(row=5, column=0)
+        tk.Label(self, text="Part Lists File (PL):").grid(row=9, column=0)
         self.file_path_PL_entry = tk.Listbox(self, height=2, width = 50)
-        self.file_path_PL_entry.grid(row=6, column=0)
+        self.file_path_PL_entry.grid(row=10, column=0)
 
         browse_button_part_list = tk.Button(self, text="Browse Files", command= lambda: self.browse_files_parts_requested("All files", self.file_path_PL_entry))
-        browse_button_part_list.grid(row=7, column=0)
+        browse_button_part_list.grid(row=11, column=0)
 
         # main button
         generate_button = tk.Button(self, text="Generate RFQ", command=self.generate_rfq)
-        generate_button.grid(row=8, column=0)
+        generate_button.grid(row=12, column=0)
     
     def update_customer_info(self, event= None):
         """Update customer information label when a customer is selected."""
@@ -184,7 +186,7 @@ class RfqGen(tk.Tk):
             messagebox.showinfo("Success", f"RFQ generated successfully! RFQ Number: {rfq_pk}")
             answer = messagebox.askyesno("Confirmation", "Do you want to send an email to the supplier for a quote?")
             if answer:
-                send_mail("Request for Quote", create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0])), "amir.etezazi@etezazicorps.com;shubham.aggarwal@etezazicorps.com;siddharth.vyas@etezazicorps.com")
+                send_mail("Request for Quote", create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0])), "shubham.aggarwal@etezazicorps.com;siddharth.vyas@etezazicorps.com")
             self.file_path_PL_entry.delete(0, tk.END)
             self.file_path_PR_entry.delete(0, tk.END)
             self.rfq_number_text.delete(0, tk.END)

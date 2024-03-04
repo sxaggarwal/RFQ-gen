@@ -116,15 +116,15 @@ class MieTrak:
         self.cursor.execute(query, (document_path, val, 1))
         self.conn.commit()
 
-    def get_or_create_item(self, part_number: str, description = None):
+    def get_or_create_item(self, part_number: str, item_type_fk = 1, description = None, comment = None):
         query = "select ItemPk from item where PartNumber=(?)"
         result = self.cursor.execute(query, (part_number)).fetchone()
         if result:
             return result[0]
         else:
             item_inventory_pk = self.create_item_inventory()
-            query = "insert into item (ItemInventoryFk, PartNumber, ItemTypeFK, Description) VALUES (?, ?, ?, ?)"
-            self.cursor.execute(query, (item_inventory_pk, part_number, 1, description))
+            query = "insert into item (ItemInventoryFk, PartNumber, ItemTypeFK, Description, Comment) VALUES (?, ?, ?, ?, ?)"
+            self.cursor.execute(query, (item_inventory_pk, part_number, item_type_fk, description, comment))
             self.conn.commit()
             result = self.cursor.execute(f"select ItemPK from item where PartNumber = '{part_number}'").fetchall()
             return result[0][0]

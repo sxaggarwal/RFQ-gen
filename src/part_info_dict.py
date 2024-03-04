@@ -12,7 +12,7 @@ def pk_info_dict(filepath):
     part_number = extract_from_excel(filepath, "Part")
     material = extract_from_excel(filepath, "Material")
     finish_code = extract_from_excel(filepath, "FinishCode")
-    heat_treat = extract_from_excel(filepath, "HeatTreat (Y/N)")
+    heat_treat = extract_from_excel(filepath, "HeatTreat")
     my_dict = {}
 
     for d, a, b, c in zip(part_number, material, finish_code, heat_treat):
@@ -36,11 +36,11 @@ def pk_info_dict(filepath):
             if result:
                 fin_pk = result[0][0]
             else:
-                pk = data_base_conn.get_or_create_item(f"OP Finish - {d}")
+                pk = data_base_conn.get_or_create_item(f"OP Finish - {d}",item_type_fk=5, description= b, comment = b)
                 fin_pk = pk
 
-        if c and (c == 'Y' or c == 'y'):
-            pk = data_base_conn.get_or_create_item(f"OP HT - {d}")
+        if c:
+            pk = data_base_conn.get_or_create_item(f"OP HT - {d}", item_type_fk=5, description= c, comment= c)
             ht_pk = pk
 
         my_dict[d] = (mat_pk, ht_pk, fin_pk)
