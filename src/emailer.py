@@ -13,17 +13,22 @@ def material_for_quote_email(filepath):
     width = extract_from_excel(filepath, "Width")
     thickness = extract_from_excel(filepath, "Thickness")
     quantity_reqd = extract_from_excel(filepath, "QuantityRequired")
-    for a,b,c,d,e in zip(material, length, width, thickness, quantity_reqd):
+    finish_code = extract_from_excel(filepath, "FinishCode")
+    heat_treat = extract_from_excel(filepath, "HeatTreat")
+    for a,b,c,d,e,f,g in zip(material, length, width, thickness, quantity_reqd, finish_code, heat_treat):
         a = None if isinstance(a, float) and math.isnan(a) else a
         b = None if isinstance(b, float) and math.isnan(b) else b
         c = None if isinstance(c, float) and math.isnan(c) else c
         d = None if isinstance(d, float) and math.isnan(d) else d
         e = None if isinstance(e, float) and math.isnan(e) else e
+        f = None if isinstance(f, float) and math.isnan(f) else f
+        g = None if isinstance(g, float) and math.isnan(g) else g
+    
         if a != None:
             item_inventory_pk = conn.execute_query("Select ItemInventoryFK from Item Where PartNumber = ?", (a,))[0][0]
             quantity_on_hand = conn.execute_query("Select QuantityOnHand from ItemInventory Where ItemInventoryPK = ?", (item_inventory_pk,))[0][0]
             if quantity_on_hand < e:
-                dict1[a] = (b,c,d,e)
+                dict1[a] = (b,c,d,e,f,g)
             else:
                 print(f"Material '{a}' has '{quantity_on_hand}' quantity on hand in Item Inventory")
                 #TODO: ask user if he still wants to send an email for the quote 
@@ -35,12 +40,16 @@ def create_email_body(material_dict):
     email_body += "We are in need of the following materials and would like to request a quote for each:\n\n"
     
     for material, info in material_dict.items():
-        length, width, thickness, quantity = info
-        email_body += f"Material: {material}\n"
-        email_body += f"Dimensions (Length x Width x Thickness): {length} x {width} x {thickness}\n"
+        length, width, thickness, quantity, finish_code, heat_treat = info
+        email_body += f"Material: {material},\n"
+        email_body += f"Dimensions (Length x Width x Thickness): {length} x {width} x {thickness},\n"
+        if finish_code:
+            email_body += f"Finish Information: {finish_code},\n"
+        if heat_treat:
+            email_body += f"Heat Treat Information: {heat_treat},\n"
         email_body += f"Quantity Required: {quantity}\n\n"
-
-    email_body += "Please provide us with your best quote at your earliest convenience.\n\n"
+        
+    email_body += "Please provide us with your best quote which should include minimum charge, Valid until date or term, shipping, Delivery terms, Lead time or delivery date and delivery period at your earliest convenience.\n\n"
     email_body += "Thank you,\nEtezazi Industries"
 
     return email_body

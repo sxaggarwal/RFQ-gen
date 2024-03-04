@@ -181,7 +181,11 @@ class RfqGen(tk.Tk):
                 
                 if part_number in info_dict:
                     dict_values = info_dict[part_number]
-                    self.data_base_conn.insert_part_details_in_item(item_pk, dict_values)
+                    self.data_base_conn.insert_part_details_in_item(item_pk, part_number, dict_values)
+                    pk_value = my_dict[part_number]
+                    for j in pk_value:
+                        if j:
+                            self.data_base_conn.insert_part_details_in_item(j, part_number, dict_values)
             
             messagebox.showinfo("Success", f"RFQ generated successfully! RFQ Number: {rfq_pk}")
             answer = messagebox.askyesno("Confirmation", "Do you want to send an email to the supplier for a quote?")

@@ -16,3 +16,7 @@
 2024-03-04 14:10:07,984 - MAIL - CRITICAL - Unknown error. Message not delivered
 2024-03-04 14:15:03,293 - MAIL - INFO - Email command executed. Recipient -> shubham.aggarwal@etezazicorps.com;siddharth.vyas@etezazicorps.com. SENT STATUS PENDING
 2024-03-04 14:15:18,309 - MAIL - CRITICAL - Unknown error. Message not delivered
+2024-03-04 16:48:29,586 - MAIL - INFO - Email command executed. Recipient -> shubham.aggarwal@etezazicorps.com;siddharth.vyas@etezazicorps.com. SENT STATUS PENDING
+2024-03-04 16:48:44,592 - MAIL - CRITICAL - Unknown error. Message not delivered
+2024-03-04 17:26:59,235 - MAIL - INFO - Email command executed. Recipient -> shubham.aggarwal@etezazicorps.com;siddharth.vyas@etezazicorps.com. SENT STATUS PENDING
+2024-03-04 17:27:59,243 - MAIL - CRITICAL - Unknown error. Message not delivered

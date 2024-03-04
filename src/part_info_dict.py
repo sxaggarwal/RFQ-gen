@@ -28,7 +28,7 @@ def pk_info_dict(filepath):
             if result:
                 mat_pk = result[0][0]  # Assuming execute_query returns a list of tuples
             else:
-                pk = data_base_conn.get_or_create_item(a)
+                pk = data_base_conn.get_or_create_item(a, service_item=0, purchase=0, manufactured_item=1)
                 mat_pk = pk
 
         if b:
@@ -36,11 +36,11 @@ def pk_info_dict(filepath):
             if result:
                 fin_pk = result[0][0]
             else:
-                pk = data_base_conn.get_or_create_item(f"OP Finish - {d}",item_type_fk=5, description= b, comment = b)
+                pk = data_base_conn.get_or_create_item(f"OP Finish - {d}",item_type_fk=5, description= b, comment = b, purchase_order_comment=b)
                 fin_pk = pk
 
         if c:
-            pk = data_base_conn.get_or_create_item(f"OP HT - {d}", item_type_fk=5, description= c, comment= c)
+            pk = data_base_conn.get_or_create_item(f"OP HT - {d}", item_type_fk=5, description= c, comment= c, purchase_order_comment= c)
             ht_pk = pk
 
         my_dict[d] = (mat_pk, ht_pk, fin_pk)
