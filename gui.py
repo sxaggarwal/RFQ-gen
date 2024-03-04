@@ -1,14 +1,12 @@
 # all tkinter modules that go on the screen
-from src.Mie_trak_connection import MieTrak
+from src.mie_trak_connection import MieTrak
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from src.pull_excel_data import extract_from_excel
 import os, shutil
 from src.part_info_dict import pk_info_dict, part_info
-from src.docparser import boeing_pdf_converter
-from src.seperating_file import get_pl_path
-from src.data_cleaner_boeing import capture_data
-from src.extract_data_from_pl import extract_finish_codes_from_file, extract_dash_number
+from src.sendmail import send_mail
+from src.emailer import material_for_quote_email, create_email_body
 
 class RfqGen(tk.Tk):
     def __init__(self):
@@ -40,9 +38,6 @@ class RfqGen(tk.Tk):
 
         # Bind the combobox selection event to update customer information
         self.customer_select_box.bind("<<ComboboxSelected>>", self.update_customer_info)
-
-        # self.output_text = tk.Text(self, height=4, width=30)
-        # self.output_text.grid(row=7, column=1)
 
         # Entrybox for the requested parts in an excel file. (upload for excel file) 
         tk.Label(self, text="Parts Requested File").grid(row=2, column=0)
@@ -157,8 +152,6 @@ class RfqGen(tk.Tk):
 
                 item_pk = self.data_base_conn.get_or_create_item(part_number, description= description)
                 matching_paths = [path for path in destination_paths if part_number in path]
-            
-
                  
                 for url in matching_paths:
                     self.data_base_conn.upload_documents(url, item_fk=item_pk)
@@ -187,37 +180,11 @@ class RfqGen(tk.Tk):
                 if part_number in info_dict:
                     dict_values = info_dict[part_number]
                     self.data_base_conn.insert_part_details_in_item(item_pk, dict_values)
-
-                # TODO: Converting and cleanning a pdf.
-                # paths_with_pl = get_pl_path(destination_paths)
-                # for path in paths_with_pl:
-                #     if part_number in path:
-                #         boeing_pdf_converter(path, f"{part_number}_raw_PL.txt")
-                #         capture_data(f"{part_number}_raw_PL.txt", f"{part_number}_PL.txt")
-                
-                # # TODO: FEATURE NOT COMPLETE, COMMENTED TO PUSH TO GIT
-                # dash_number = extract_dash_number(part_number)
-                # result, part_info_list = extract_finish_codes_from_file(f"{part_number}_PL.txt", dash_number)
-                # if result:
-                #     output_message = f"Finish codes for part {part_number}: {result}\n"
-                #     if part_info_list:
-                #         output_message += "Material Information:\n"
-                #         for part_info in part_info_list:
-                #             output_message += f"{part_info}\n"
-                #     else:
-                #         output_message += "No material information available for this part.\n"
-                # else:
-                #     output_message = f"No Finish codes for {part_number}\n"
-                
-                # self.output_text.insert(tk.END, output_message)
-
-                # creating router
-                # router_pk = self.data_base_conn.create_router(party_pk, item_pk)
-                # print(router_pk)
-                # self.data_base_conn.router_work_center(router_pk)
-        
             
             messagebox.showinfo("Success", f"RFQ generated successfully! RFQ Number: {rfq_pk}")
+            answer = messagebox.askyesno("Confirmation", "Do you want to send an email to the supplier for a quote?")
+            if answer:
+                send_mail("Request for Quote", create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0])), "amir.etezazi@etezazicorps.com;shubham.aggarwal@etezazicorps.com;siddharth.vyas@etezazicorps.com")
             self.file_path_PL_entry.delete(0, tk.END)
             self.file_path_PR_entry.delete(0, tk.END)
             self.rfq_number_text.delete(0, tk.END)

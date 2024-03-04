@@ -3,7 +3,7 @@
 # key for both the dictionary is part number 
 
 from src.pull_excel_data import extract_from_excel
-from src.Mie_trak_connection import MieTrak
+from src.mie_trak_connection import MieTrak
 import math
 
 data_base_conn = MieTrak()
