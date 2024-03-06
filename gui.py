@@ -11,7 +11,7 @@ from src.emailer import material_for_quote_email, create_email_body
 class RfqGen(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title = "RFQGen"
+        self.title("RFQGen")
         self.geometry("305x400")
 
         self.data_base_conn = MieTrak() 
@@ -61,6 +61,9 @@ class RfqGen(tk.Tk):
         # main button
         generate_button = tk.Button(self, text="Generate RFQ", command=self.generate_rfq)
         generate_button.grid(row=12, column=0)
+
+        sending_email_button = tk.Button(self, text="Send Email", command = self.sending_email)
+        sending_email_button.grid(row = 13, column = 0)
     
     def update_customer_info(self, event= None):
         """Update customer information label when a customer is selected."""
@@ -116,10 +119,57 @@ class RfqGen(tk.Tk):
 
         return destination_path
 
+    def show_email_body_popup(self, email_body):
+        popup = tk.Toplevel(self)
+        popup.title("Email Body")
+
+        body_label = tk.Label(popup, text=email_body)
+        body_label.pack()
+
+        edit_button = tk.Button(popup, text="Edit", command=lambda: self.edit_email_body(email_body, popup))
+        edit_button.pack(side=tk.LEFT)
+
+        confirm_button = tk.Button(popup, text="Confirm", command=lambda: self.confirm_send_email(email_body, popup))
+        confirm_button.pack(side=tk.RIGHT)
+
+    def edit_email_body(self, email_body, popup):
+        edit_window = tk.Toplevel(popup)
+        edit_window.title("Edit Email Body")
+
+        edit_text = tk.Text(edit_window, width=100, height=50)
+        edit_text.insert(tk.END, email_body)
+        edit_text.pack()
+
+        save_button = tk.Button(edit_window, text="Save", command=lambda: self.save_email_body(edit_text, popup))
+        save_button.pack()
+
+    def save_email_body(self, edit_text, popup):
+        new_body = edit_text.get("1.0", tk.END)
+        self.show_email_body_popup(new_body)
+        popup.destroy()
+
+    def confirm_send_email(self, email_body, popup):
+        popup.destroy()
+        confirmation = messagebox.askyesno("Confirm", "Are you sure you want to send this email?")
+        if confirmation:
+            send_mail("Request for Quote",email_body, "shubham.aggarwal@etezazicorps.com;siddharth.vyas@etezazicorps.com")
+        else:
+            self.show_email_body_popup(email_body)
+
+    def sending_email(self):
+        """ """
+        if self.file_path_PR_entry.get(0):
+            email_body = create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0]))
+            self.show_email_body_popup(email_body)
+        else:
+            messagebox.showerror("ERROR", "Upload Parts Requested File")
+            self.file_path_PR_entry.delete(0, tk.END)
+            self.file_path_PL_entry.delete(0, tk.END)
+            self.rfq_number_text.delete(0, tk.END)
+    
     def generate_rfq(self):
         """ Main function for Generating RFQ, adding line items and creating a quote """
         if self.customer_select_box.get() and self.file_path_PR_entry.get(0):
-            # self.output_text.delete(1.0, tk.END)
             party_pk = self.selected_customer_partypk
             billing_details = self.data_base_conn.get_address_of_party(party_pk)
             state, country = self.data_base_conn.get_state_and_country(party_pk)
@@ -190,7 +240,9 @@ class RfqGen(tk.Tk):
             messagebox.showinfo("Success", f"RFQ generated successfully! RFQ Number: {rfq_pk}")
             answer = messagebox.askyesno("Confirmation", "Do you want to send an email to the supplier for a quote?")
             if answer:
-                send_mail("Request for Quote", create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0])), "shubham.aggarwal@etezazicorps.com;siddharth.vyas@etezazicorps.com")
+                email_body = create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0]))
+                self.show_email_body_popup(email_body)
+            
             self.file_path_PL_entry.delete(0, tk.END)
             self.file_path_PR_entry.delete(0, tk.END)
             self.rfq_number_text.delete(0, tk.END)

@@ -221,43 +221,5 @@ class MieTrak:
         except pyodbc.Error as e:
             print(e)
 
-        
-    # TODO: Updates for Version2
-    # def create_router(self, customer_fk, item_fk):
-    #     """ """
-    #     division_fk = 1
-    #     router_status_fk = 2
-    #     router_type = 0
-    #     engineering_change = 0
-    #     query = "INSERT INTO Router (CustomerFK, ItemFK, DivisionFK, RouterStatusFK, RouterType, EngineeringChange) VALUES (?,?,?,?,?,?)"
-    #     self.cursor.execute(query, (customer_fk, item_fk, division_fk, router_status_fk, router_type, engineering_change))
-    #     self.conn.commit()
-    #     return self.cursor.execute(f"SELECT RouterPK FROM Router WHERE CustomerFK = {customer_fk} AND ItemFK = {item_fk}").fetchall()[-1][0]
-    
-    # def get_columns_router(self):
-    #     query = f'''
-    #         SELECT COLUMN_NAME
-    #         FROM INFORMATION_SCHEMA.COLUMNS
-    #         WHERE TABLE_NAME = 'RouterWorkCenter' AND COLUMN_NAME NOT IN ('RouterFK', 'RouterWorkCenterPK', 'LastAccess')
-    #     '''
-    #     columns = self.execute_query(query)
-    #     col = [row.COLUMN_NAME for row in columns]
-    #     column_str = ','.join(col)
-    #     return column_str
-    
-    # def router_work_center_template(self):
-    #     self.all_columns_router = self.get_columns_router()
-    #     query = f"SELECT {self.all_columns_router} FROM RouterWorkCenter WHERE RouterFK = 4"
-    #     template = self.execute_query(query)
-    #     return template
-    
-    # def router_work_center(self, router_fk):
-    #     template = self.router_work_center_template()
-    #     for data in template:
-    #         query = f"INSERT INTO RouterWorkCenter (RouterFK, {self.all_columns_router}) VALUES ({','.join(['?']*(len(data)+1))})"
-    #         self.cursor.execute(query, (router_fk,) + tuple(data))
-    #         self.conn.commit()
-
-
 if __name__ == "__main__":
     m = MieTrak()
