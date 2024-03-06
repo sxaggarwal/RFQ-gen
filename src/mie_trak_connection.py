@@ -5,7 +5,7 @@ import pyodbc
 class MieTrak:
     def __init__(self):
         # make a connection
-        conn_string = "DRIVER={SQL Server};SERVER=ETZ-SQL;DATABASE=SANDBOX;Trusted_Connection=yes"
+        conn_string = "DRIVER={SQL Server};SERVER=ETZ-SQL;DATABASE=ETEZAZIMIETrakLive;Trusted_Connection=yes"
         self.conn = pyodbc.connect(conn_string)
         self.cursor = self.conn.cursor()
 

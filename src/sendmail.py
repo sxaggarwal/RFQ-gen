@@ -12,21 +12,21 @@ def send_mail(subject, body, recipient):
                         @subject = ?,
                         @body = ?;
     """
-    with get_connection() as conn:
+    with get_connection(live=True) as conn:
         cursor = conn.cursor()
         cursor.execute(t_sql_command, ("MIE Notifications", recipient, subject, body))
 
         logger.info(f"Email command executed. Recipient -> {recipient}. SENT STATUS PENDING")
 
-        time.sleep(5)  # we check the status after 15 seconds
+    time.sleep(5)
+
+    with get_connection(live=True) as conn:
         query = "SELECT IDENT_CURRENT('msdb.dbo.sysmail_allitems')"
         cursor.execute(query)
         pk = cursor.fetchone()[0]
         sent_status_query = "SELECT sent_status FROM msdb.dbo.sysmail_allitems WHERE mailitem_id = ?"
         cursor.execute(sent_status_query, pk)
-        
         status = cursor.fetchone()[0] 
-        print(status)
         if status == "sent":
             logger.info(f"Eamil Sent. SENT STATUS CONFIRMED")
         elif status == "failed":
