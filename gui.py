@@ -167,6 +167,7 @@ class RfqGen(tk.Tk):
             self.file_path_PL_entry.delete(0, tk.END)
             self.rfq_number_text.delete(0, tk.END)
     
+    # TODO: Sid
     def generate_rfq(self):
         """ Main function for Generating RFQ, adding line items and creating a quote """
         if self.customer_select_box.get() and self.file_path_PR_entry.get(0):
@@ -202,7 +203,7 @@ class RfqGen(tk.Tk):
                     destination_paths.append(file_path_to_add_to_rfq)
                     self.data_base_conn.upload_documents(file_path_to_add_to_rfq, rfq_fk=rfq_pk)
 
-                item_pk = self.data_base_conn.get_or_create_item(part_number, description= description)
+                item_pk = self.data_base_conn.get_or_create_item(part_number, description= description, purchase = 0, service_item= 0, manufactured_item= 1)
                 matching_paths = [path for path in destination_paths if part_number in path]
                  
                 for url in matching_paths:
@@ -233,9 +234,12 @@ class RfqGen(tk.Tk):
                     dict_values = info_dict[part_number]
                     self.data_base_conn.insert_part_details_in_item(item_pk, part_number, dict_values)
                     pk_value = my_dict[part_number]
-                    for j in pk_value:
+                    for j in pk_value[1:]:
                         if j:
                             self.data_base_conn.insert_part_details_in_item(j, part_number, dict_values)
+                            for url in matching_paths:
+                                self.data_base_conn.upload_documents(url, item_fk=j)
+                    self.data_base_conn.insert_part_details_in_item(pk_value[0], part_number, dict_values, item_type='Material')
             
             messagebox.showinfo("Success", f"RFQ generated successfully! RFQ Number: {rfq_pk}")
             answer = messagebox.askyesno("Confirmation", "Do you want to send an email to the supplier for a quote?")

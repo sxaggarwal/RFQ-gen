@@ -28,7 +28,7 @@ def pk_info_dict(filepath):
             if result:
                 mat_pk = result[0][0]  # Assuming execute_query returns a list of tuples
             else:
-                pk = data_base_conn.get_or_create_item(a, service_item=0, purchase=0, manufactured_item=1)
+                pk = data_base_conn.get_or_create_item(a, service_item=0, purchase=0, manufactured_item=1, item_type_fk= 2)
                 mat_pk = pk
 
         if b:
@@ -36,11 +36,11 @@ def pk_info_dict(filepath):
             if result:
                 fin_pk = result[0][0]
             else:
-                pk = data_base_conn.get_or_create_item(f"OP Finish - {d}",item_type_fk=5, description= b, comment = b, purchase_order_comment=b)
+                pk = data_base_conn.get_or_create_item(f"OP Finish - {d}",item_type_fk=5, description= b, comment = b, purchase_order_comment=b, inventoriable= 0)
                 fin_pk = pk
 
         if c:
-            pk = data_base_conn.get_or_create_item(f"OP HT - {d}", item_type_fk=5, description= c, comment= c, purchase_order_comment= c)
+            pk = data_base_conn.get_or_create_item(f"OP HT - {d}", item_type_fk=5, description= c, comment= c, purchase_order_comment= c, inventoriable= 0)
             ht_pk = pk
 
         my_dict[d] = (mat_pk, ht_pk, fin_pk)
@@ -55,9 +55,10 @@ def part_info(filepath):
     weight = extract_from_excel(filepath, "Weight")
     drawing_number = extract_from_excel(filepath, "DrawingNumber")
     drawing_revision = extract_from_excel(filepath, "DrawingRevision")
+    pl_revision = extract_from_excel(filepath, "PLRevision")
 
     info_dict = {}
-    for a, b, c, d, e, f, g in zip(part_number, length, thickness, width, weight, drawing_number, drawing_revision):
+    for a, b, c, d, e, f, g, h in zip(part_number, length, thickness, width, weight, drawing_number, drawing_revision, pl_revision):
         # Replace NaN values with None
         b = None if isinstance(b, float) and math.isnan(b) else b
         c = None if isinstance(c, float) and math.isnan(c) else c
@@ -65,7 +66,8 @@ def part_info(filepath):
         e = None if isinstance(e, float) and math.isnan(e) else e
         f = None if isinstance(f, float) and math.isnan(f) else f
         g = None if isinstance(g, float) and math.isnan(g) else g
-        
-        info_dict[a] = (b, c, d, e, f, g) 
+        h = None if isinstance(h, float) and math.isnan(h) else h
+
+        info_dict[a] = (b, c, d, e, f, g, h) 
     
     return info_dict
