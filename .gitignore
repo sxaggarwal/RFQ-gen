@@ -1,5 +1,4 @@
 __pycache__/
-*.txt
 .idea/
 main.py
 structure.py

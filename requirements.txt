@@ -1,0 +1,4 @@
+fitz==0.0.1.dev2
+numpy==1.26.4
+pandas==2.2.1
+pyodbc==5.0.1
