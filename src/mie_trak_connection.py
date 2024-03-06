@@ -116,15 +116,15 @@ class MieTrak:
         self.cursor.execute(query, (document_path, val, 1))
         self.conn.commit()
 
-    def get_or_create_item(self, part_number: str, item_type_fk = 1, mps_item = 1, purchase =1, forecast_on_mrp = 1, mps_on_mrp =1 , service_item = 1, unit_of_measure_set_fk = 1, vendor_unit = 1.0, manufactured_item = 0, calculation_type_fk = 17, purchase_order_comment = None,  description = None, comment = None):
+    def get_or_create_item(self, part_number: str, item_type_fk = 1, mps_item = 1, purchase =1, forecast_on_mrp = 1, mps_on_mrp =1 , service_item = 1, unit_of_measure_set_fk = 1, vendor_unit = 1.0, manufactured_item = 0, calculation_type_fk = 17, inventoriable = 1, purchase_order_comment = None,  description = None, comment = None):
         query = "select ItemPk from item where PartNumber=(?)"
         result = self.cursor.execute(query, (part_number)).fetchone()
         if result:
             return result[0]
         else:
             item_inventory_pk = self.create_item_inventory()
-            query = "insert into item (ItemInventoryFk, PartNumber, ItemTypeFK, Description, Comment, MPSItem, Purchase, ForecastOnMRP, MPSOnMRP, ServiceItem, PurchaseOrderComment, UnitOfMeasureSetFK, VendorUnit, ManufacturedItem, CalculationTypeFK) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-            self.cursor.execute(query, (item_inventory_pk, part_number, item_type_fk, description, comment, mps_item, purchase, forecast_on_mrp, mps_on_mrp, service_item, purchase_order_comment, unit_of_measure_set_fk, vendor_unit, manufactured_item, calculation_type_fk ))
+            query = "insert into item (ItemInventoryFk, PartNumber, ItemTypeFK, Description, Comment, MPSItem, Purchase, ForecastOnMRP, MPSOnMRP, ServiceItem, PurchaseOrderComment, UnitOfMeasureSetFK, VendorUnit, ManufacturedItem, CalculationTypeFK, Inventoriable) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            self.cursor.execute(query, (item_inventory_pk, part_number, item_type_fk, description, comment, mps_item, purchase, forecast_on_mrp, mps_on_mrp, service_item, purchase_order_comment, unit_of_measure_set_fk, vendor_unit, manufactured_item, calculation_type_fk, inventoriable ))
             self.conn.commit()
             result = self.cursor.execute(f"select ItemPK from item where PartNumber = '{part_number}'").fetchall()
             return result[0][0]
@@ -134,19 +134,30 @@ class MieTrak:
         self.conn.commit()
         return self.cursor.execute("select ItemInventoryPK from ItemInventory").fetchall()[-1][0]
     
-    def insert_part_details_in_item(self, item_pk, part_number, values):
+    def insert_part_details_in_item(self, item_pk, part_number, values, item_type = None):
         """
         Insert values into the Item table where ItemPK = item_pk.
         :param item_pk: The ItemPK to identify the item.
         :param values: A tuple containing the values to be inserted.
         """
-        try:
-            query = "UPDATE Item SET StockLength=?, Thickness=?, StockWidth=?, Weight=?, DrawingNumber=?, DrawingRevision=?, PartLength=?, PartWidth=?, VendorPartNumber=? WHERE ItemPK = ?"
-            parameters = values + (values[0], values[2], part_number, item_pk,)
-            self.cursor.execute(query, parameters)
-            self.conn.commit()
-        except pyodbc.Error as e:
-            print(f"Error inserting values into Item table: {e}")
+        if item_type == 'Material':
+            """ """
+            po_comment = f" Dimensions (L x W x T): {values[0]} x {values[2]} x {values[1]}"
+            try:
+                query = "UPDATE Item SET StockLength=?, Thickness=?, StockWidth=?, Weight=?, PartLength=?, PartWidth=?, PurchaseOrderComment=? WHERE ItemPK = ?"
+                parameters = values[0:4] + (values[0], values[2], po_comment, item_pk,)
+                self.cursor.execute(query, parameters)
+                self.conn.commit()
+            except pyodbc.Error as e:
+                print(f"Error inserting values into Item table: {e}")
+        else:
+            try:
+                query = "UPDATE Item SET StockLength=?, Thickness=?, StockWidth=?, Weight=?, DrawingNumber=?, DrawingRevision=?, Revision=?, PartLength=?, PartWidth=?, VendorPartNumber=? WHERE ItemPK = ?"
+                parameters = values + (values[0], values[2], part_number, item_pk,)
+                self.cursor.execute(query, parameters)
+                self.conn.commit()
+            except pyodbc.Error as e:
+                print(f"Error inserting values into Item table: {e}")
 
     def create_rfq_line_item(self, item_fk: int, request_for_quote_fk: int, line_reference_number: int, quote_fk: int):
         query = "INSERT INTO RequestForQuoteLine (ItemFK, RequestForQuoteFK, LineReferenceNumber, QuoteFK) VALUES (?,?,?,?)"
