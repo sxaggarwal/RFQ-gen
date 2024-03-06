@@ -150,9 +150,10 @@ class RfqGen(tk.Tk):
 
     def confirm_send_email(self, email_body, popup):
         popup.destroy()
+        email_ids = ';'.join(extract_from_excel(rf"y:\PDM\Non-restricted\list_of_email.xlsx", "Email"))
         confirmation = messagebox.askyesno("Confirm", "Are you sure you want to send this email?")
         if confirmation:
-            send_mail("Request for Quote",email_body, "shubham.aggarwal@etezazicorps.com;siddharth.vyas@etezazicorps.com")
+            send_mail("Request for Quote",email_body, email_ids)
         else:
             self.show_email_body_popup(email_body)
 
