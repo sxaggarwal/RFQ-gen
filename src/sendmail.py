@@ -12,7 +12,7 @@ def send_mail(subject, body, recipient):
                         @subject = ?,
                         @body = ?;
     """
-    with get_connection(live=True) as conn:
+    with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(t_sql_command, ("MIE Notifications", recipient, subject, body))
 
@@ -20,7 +20,7 @@ def send_mail(subject, body, recipient):
 
     time.sleep(5)
 
-    with get_connection(live=True) as conn:
+    with get_connection() as conn:
         query = "SELECT IDENT_CURRENT('msdb.dbo.sysmail_allitems')"
         cursor.execute(query)
         pk = cursor.fetchone()[0]

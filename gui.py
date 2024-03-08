@@ -195,6 +195,10 @@ class RfqGen(tk.Tk):
             descriptions = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "DESCRIPTION")
             part_description_data = dict(zip(parts, descriptions))
 
+            qty = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "QuantityRequired")
+
+            qty_data = dict(zip(parts,qty))
+
             for part_number, description in part_description_data.items():
                 destination_path = rf'y:\PDM\Non-restricted\{self.customer_select_box.get()}\{part_number}'
                 for file in user_selected_file_paths:
@@ -220,9 +224,11 @@ class RfqGen(tk.Tk):
                     quote_assembly_pk = self.data_base_conn.execute_query(f"SELECT QuoteAssemblyPK FROM QuoteAssembly WHERE QuoteFK = {quote_pk} AND SequenceNumber = {x}")
             
                     quote_assembly_fk.append(quote_assembly_pk[0][0])
-                
-                self.data_base_conn.create_rfq_line_item(item_pk, rfq_pk, i, quote_pk)
+
+                rfq_line_pk = self.data_base_conn.create_rfq_line_item(item_pk, rfq_pk, i, quote_pk, quantity=qty_data[part_number])
                 i+=1
+
+                self.data_base_conn.rfq_line_quantity(rfq_line_pk, qty_data[part_number])
 
                 if part_number in my_dict:
                     dict_values = my_dict[part_number]

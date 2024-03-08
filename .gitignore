@@ -1,6 +1,10 @@
 __pycache__/
 .idea/
 main.py
+build/
+dist/
+logs/
+rfq_scripts/
 structure.py
 sonaca_honda.py
 flammability_test.py

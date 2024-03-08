@@ -5,7 +5,7 @@ import pyodbc
 class MieTrak:
     def __init__(self):
         # make a connection
-        conn_string = "DRIVER={SQL Server};SERVER=ETZ-SQL;DATABASE=ETEZAZIMIETrakLive;Trusted_Connection=yes"
+        conn_string = "DRIVER={SQL Server};SERVER=ETZ-SQL;DATABASE=SANDBOX;Trusted_Connection=yes"
         self.conn = pyodbc.connect(conn_string)
         self.cursor = self.conn.cursor()
 
@@ -159,9 +159,18 @@ class MieTrak:
             except pyodbc.Error as e:
                 print(f"Error inserting values into Item table: {e}")
 
-    def create_rfq_line_item(self, item_fk: int, request_for_quote_fk: int, line_reference_number: int, quote_fk: int):
-        query = "INSERT INTO RequestForQuoteLine (ItemFK, RequestForQuoteFK, LineReferenceNumber, QuoteFK) VALUES (?,?,?,?)"
-        self.cursor.execute(query, (item_fk, request_for_quote_fk, line_reference_number, quote_fk))
+    def create_rfq_line_item(self, item_fk: int, request_for_quote_fk: int, line_reference_number: int, quote_fk: int, price_type_fk=3, unit_of_measure_set_fk=1, quantity=None):
+        insert_query = "INSERT INTO RequestForQuoteLine (ItemFK, RequestForQuoteFK, LineReferenceNumber, QuoteFK, Quantity, PriceTypeFK, UnitOfMeasureSetFK) VALUES (?,?,?,?,?,?,?)"
+        self.cursor.execute(insert_query, (item_fk, request_for_quote_fk, line_reference_number, quote_fk, quantity, price_type_fk, unit_of_measure_set_fk))
+        self.cursor.execute("SELECT IDENT_CURRENT('RequestForQuoteLine')")
+        return_pk = self.cursor.fetchone()[0]
+        self.conn.commit()
+        return return_pk
+       
+    def rfq_line_quantity(self, rfq_line_fk, quantity, delivery = 1, price_type_fk = 3):
+        """ """
+        query = "INSERT INTO RequestForQuoteLineQuantity (RequestForQuoteLineFK, PriceTypeFK, Quantity, Delivery) VALUES (?,?,?,?)"
+        self.cursor.execute(query, (rfq_line_fk, price_type_fk, quantity, delivery))
         self.conn.commit()
     
     def create_quote(self, customer_fk, item_fk, quote_type, part_number):

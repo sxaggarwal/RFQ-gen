@@ -33,7 +33,7 @@ def material_for_quote_email(filepath):
             if quantity_on_hand < e:
                 dict1[a] = (b,c,d,e,f,g,h)
             else:
-                print(f"Material '{a}' has '{quantity_on_hand}' quantity on hand in Item Inventory") 
+                print(f"Material '{a}' has '{quantity_on_hand}' quantity on hand in Item Inventory") #TODO: Fix this
     return dict1
 
 def create_email_body(material_dict):
