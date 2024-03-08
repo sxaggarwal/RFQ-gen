@@ -27,7 +27,7 @@ class MieTrak:
         return self.execute_query(query, party_fk)[0]
     
     def get_state_and_country(self, party_fk):
-        """ """
+        """ Fetches the state and country of the selected customer """
         query = " Select StateFK, CountryFK FROM Address where PartyFK = ?"
         info = self.execute_query(query, party_fk)
         state_fk, country_fk = info[0]
@@ -53,7 +53,7 @@ class MieTrak:
                         zip_code,
                         state,
                         country,
-                        customer_rfq_number = None,
+                        customer_rfq_number=None,
                         division_fk=1,
                         received_purchase_order=0,
                         no_bid=0,
@@ -61,11 +61,15 @@ class MieTrak:
                         mie_exchange=0,
                         sales_tax_on_freight=0,
                         request_for_quote_status_fk=1, ):
+        """ Function for creating RFQ """
         query = ("insert into RequestForQuote (CustomerFK, BillingAddressFK, ShippingAddressFK, DivisionFK, "
                  "ReceivedPurchaseOrder, NoBid, DidNotGet, MIEExchange, SalesTaxOnFreight, RequestForQuoteStatusFK, "
                  "BillingAddressName, BillingAddress1, BillingAddress2, BillingAddressAlt, BillingAddressCity, "
                  "BillingAddressZipCode, ShippingAddressName, ShippingAddress1, ShippingAddress2, ShippingAddressAlt, "
-                 "ShippingAddressCity, ShippingAddressZipCode, BillingAddressStateDescription, BillingAddressCountryDescription, ShippingAddressStateDescription, ShippingAddressCountryDescription, CustomerRequestForQuoteNumber) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+                 "ShippingAddressCity, ShippingAddressZipCode, BillingAddressStateDescription, "
+                 "BillingAddressCountryDescription, ShippingAddressStateDescription, "
+                 "ShippingAddressCountryDescription, CustomerRequestForQuoteNumber) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,"
+                 "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
         try:
             self.cursor.execute(query, (
                         customer_fk,
@@ -107,6 +111,7 @@ class MieTrak:
         return results[-1][0]
 
     def upload_documents(self, document_path: str, rfq_fk=None, item_fk=None):
+        """ Function for attaching documents """
         if not rfq_fk and not item_fk:
             raise TypeError("Both values can not be None")
         
@@ -116,20 +121,25 @@ class MieTrak:
         self.cursor.execute(query, (document_path, val, 1))
         self.conn.commit()
 
-    def get_or_create_item(self, part_number: str, item_type_fk = 1, mps_item = 1, purchase =1, forecast_on_mrp = 1, mps_on_mrp =1 , service_item = 1, unit_of_measure_set_fk = 1, vendor_unit = 1.0, manufactured_item = 0, calculation_type_fk = 17, inventoriable = 1, purchase_order_comment = None,  description = None, comment = None):
+    def get_or_create_item(self, part_number: str, item_type_fk=1, mps_item=1, purchase=1, forecast_on_mrp=1, mps_on_mrp=1, service_item=1, unit_of_measure_set_fk=1, vendor_unit=1.0, manufactured_item=0, calculation_type_fk=17, inventoriable=1, purchase_order_comment=None,  description=None, comment=None):
+        """ Fetches ItemPK if the item exists else it creates the item and then returns the ItemPK"""
         query = "select ItemPk from item where PartNumber=(?)"
-        result = self.cursor.execute(query, (part_number)).fetchone()
+        result = self.cursor.execute(query, part_number).fetchone()
         if result:
             return result[0]
         else:
             item_inventory_pk = self.create_item_inventory()
-            query = "insert into item (ItemInventoryFk, PartNumber, ItemTypeFK, Description, Comment, MPSItem, Purchase, ForecastOnMRP, MPSOnMRP, ServiceItem, PurchaseOrderComment, UnitOfMeasureSetFK, VendorUnit, ManufacturedItem, CalculationTypeFK, Inventoriable) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-            self.cursor.execute(query, (item_inventory_pk, part_number, item_type_fk, description, comment, mps_item, purchase, forecast_on_mrp, mps_on_mrp, service_item, purchase_order_comment, unit_of_measure_set_fk, vendor_unit, manufactured_item, calculation_type_fk, inventoriable ))
+            query = ("insert into item (ItemInventoryFk, PartNumber, ItemTypeFK, Description, Comment, MPSItem, "
+                     "Purchase, ForecastOnMRP, MPSOnMRP, ServiceItem, PurchaseOrderComment, UnitOfMeasureSetFK, "
+                     "VendorUnit, ManufacturedItem, CalculationTypeFK, Inventoriable) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "
+                     "?, ?, ?, ?, ?, ?, ?, ?)")
+            self.cursor.execute(query, (item_inventory_pk, part_number, item_type_fk, description, comment, mps_item, purchase, forecast_on_mrp, mps_on_mrp, service_item, purchase_order_comment, unit_of_measure_set_fk, vendor_unit, manufactured_item, calculation_type_fk, inventoriable))
             self.conn.commit()
             result = self.cursor.execute(f"select ItemPK from item where PartNumber = '{part_number}'").fetchall()
             return result[0][0]
         
     def create_item_inventory(self):  # HELPER FUNC
+        """ Insert data in Item Inventory"""
         self.cursor.execute("insert into ItemInventory (QuantityOnHand) values (0.000)")
         self.conn.commit()
         return self.cursor.execute("select ItemInventoryPK from ItemInventory").fetchall()[-1][0]
@@ -160,6 +170,7 @@ class MieTrak:
                 print(f"Error inserting values into Item table: {e}")
 
     def create_rfq_line_item(self, item_fk: int, request_for_quote_fk: int, line_reference_number: int, quote_fk: int, price_type_fk=3, unit_of_measure_set_fk=1, quantity=None):
+        """ Inserts line items in the RFQ """
         insert_query = "INSERT INTO RequestForQuoteLine (ItemFK, RequestForQuoteFK, LineReferenceNumber, QuoteFK, Quantity, PriceTypeFK, UnitOfMeasureSetFK) VALUES (?,?,?,?,?,?,?)"
         self.cursor.execute(insert_query, (item_fk, request_for_quote_fk, line_reference_number, quote_fk, quantity, price_type_fk, unit_of_measure_set_fk))
         self.cursor.execute("SELECT IDENT_CURRENT('RequestForQuoteLine')")
@@ -168,12 +179,13 @@ class MieTrak:
         return return_pk
        
     def rfq_line_quantity(self, rfq_line_fk, quantity, delivery = 1, price_type_fk = 3):
-        """ """
+        """ Inserts the Item quantity in the RFQ Line """
         query = "INSERT INTO RequestForQuoteLineQuantity (RequestForQuoteLineFK, PriceTypeFK, Quantity, Delivery) VALUES (?,?,?,?)"
         self.cursor.execute(query, (rfq_line_fk, price_type_fk, quantity, delivery))
         self.conn.commit()
     
     def create_quote(self, customer_fk, item_fk, quote_type, part_number):
+        """ Creates a quote for an item """
         division_fk = 1
         query = "INSERT INTO Quote (CustomerFK, ItemFK, QuoteType, PartNumber, DivisionFK) VALUES (?,?,?,?,?) "
         self.cursor.execute(query, (customer_fk, item_fk, quote_type, part_number, division_fk))
@@ -181,12 +193,14 @@ class MieTrak:
         return self.cursor.execute("SELECT QuotePK from Quote").fetchall()[-1][0]
     
     def quote_operations_template(self):
+        """ Fetches the operation template 494 for the quote """
         self.all_columns = self.get_columns_quote()
         query = f"SELECT {self.all_columns} FROM QuoteAssembly WHERE QuoteFK = 494 and ItemFk IS NULL "
         template = self.execute_query(query)
         return template
 
     def get_columns_quote(self):
+        """ Fetches all the columns from QuoteAssembly table and converts it into a string """
         query = f'''
             SELECT COLUMN_NAME
             FROM INFORMATION_SCHEMA.COLUMNS
@@ -198,6 +212,7 @@ class MieTrak:
         return column_str
     
     def quote_operation(self, quote_fk):
+        """ Adds the operation template 494 to the quote """
         template = self.quote_operations_template()
         for data in template:
             query = f"INSERT INTO QuoteAssembly (QuoteFK, {self.all_columns}) VALUES ({','.join(['?']*(len(data)+1))})"
@@ -205,6 +220,7 @@ class MieTrak:
             self.conn.commit()
     
     def get_party_person(self, party_pk):
+        """ Gets the customer info to display in the GUI"""
         query = "SELECT ShortName, Email from Party where PartyPK = ?"
         results = self.execute_query(query, party_pk)
         return results[0]
@@ -214,12 +230,13 @@ class MieTrak:
                         party_fk=None, tool=0, stop_sequence=0, unit_of_measure_set_fk=1, setup_time = 0.00, scrape_rebate = 0.000,
                         part_width = 0.00, part_length = 0.000, parts_required = 1.000, quantity_reqd = 1.000, min_piece_price = 0.00,
                         parts_per_blank_scrap_percentage = 0.000, markup_percentage_1 = 9.999999, piece_weight = 0.000, custom_piece_weight = 0.0000, 
-                        piece_cost = 0.0000, piece_price = 0.00000, stock_pieces =0, stock_pices_scrap_perc = 0.000, 
+                        piece_cost = 0.0000, piece_price = 0.00000, stock_pieces =0, stock_pieces_scrap_perc = 0.000,
                         calculation_type_fk=17, unattended_operation=0, do_not_use_delivery_schedule=0,
                         vendor_unit=1.00000, grain_direction=0, parts_per_blank=1.000,
                         against_grain=0, double_sided=0, cert_reqd=0, non_amortized_item=0,
                         pull=0, not_include_in_piece_price=0, lock=0, nestable=0,
                         bulk_ship=0, ship_loose=0, customer_supplied_material=0):
+        """ Adds a BOM to the quote """
         query = "INSERT INTO QuoteAssembly (QuoteFK, ItemFK, PartyFK, UnitofMeasureSetFK, CalculationTypeFK, " \
                 "Tool, StopSequence, SequenceNumber, QuoteAssemblySeqNumberFK, UnattendedOperation, " \
                 "DoNotUseDeliverySchedule, VendorUnit, GrainDirection, PartsPerBlank, AgainstGrain, " \
@@ -236,7 +253,7 @@ class MieTrak:
                                         non_amortized_item, pull, not_include_in_piece_price, lock,
                                         nestable, bulk_ship, ship_loose, customer_supplied_material, order_by, setup_time, scrape_rebate, part_width, part_length, parts_required, quantity_reqd, min_piece_price,
                                         parts_per_blank_scrap_percentage, markup_percentage_1, piece_weight, custom_piece_weight, piece_cost,
-                                        piece_price, stock_pieces, stock_pices_scrap_perc))
+                                        piece_price, stock_pieces, stock_pieces_scrap_perc))
             self.conn.commit()  # Commit the transaction for changes to take effect
         except pyodbc.Error as e:
             print(e)

@@ -3,10 +3,12 @@ from src.mie_trak_connection import MieTrak
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from src.pull_excel_data import extract_from_excel
-import os, shutil
+import os
+import shutil
 from src.part_info_dict import pk_info_dict, part_info
 from src.sendmail import send_mail
 from src.emailer import material_for_quote_email, create_email_body
+
 
 class RfqGen(tk.Tk):
     def __init__(self):
@@ -27,45 +29,45 @@ class RfqGen(tk.Tk):
 
         # Customer select combobox
         tk.Label(self, text="Select Customer: ").grid(row=0, column=0)
-        self.customer_select_box = ttk.Combobox(self, values=self.customer_names, state = "readonly")
+        self.customer_select_box = ttk.Combobox(self, values=self.customer_names, state="readonly")
         self.customer_select_box.grid(row=1, column=0)
         
         tk.Label(self, text="Selected Customer Info: ").grid(row=2, column=0)
-        self.customer_info_text = tk.Text(self, height=4, width = 30)
+        self.customer_info_text = tk.Text(self, height=4, width=30)
         self.customer_info_text.grid(row=3, column=0)
 
         tk.Label(self, text="Enter RFQ Number: ").grid(row=4, column=0)
-        self.rfq_number_text = tk.Entry(self, width = 20)
-        self.rfq_number_text.grid(row = 5, column =0 )
+        self.rfq_number_text = tk.Entry(self, width=20)
+        self.rfq_number_text.grid(row=5, column=0)
 
         # Bind the combobox selection event to update customer information
         self.customer_select_box.bind("<<ComboboxSelected>>", self.update_customer_info)
 
-        # Entrybox for the requested parts in an excel file. (upload for excel file) 
+        # Entrybox for the requested parts in an Excel file. (upload for Excel file)
         tk.Label(self, text="Parts Requested File:").grid(row=6, column=0)
-        self.file_path_PR_entry = tk.Listbox(self, height=2, width = 50)
+        self.file_path_PR_entry = tk.Listbox(self, height=2, width=50)
         self.file_path_PR_entry.grid(row=7, column=0)
 
         # this should be at the bottom
         browse_button_1 = tk.Button(self, text="Browse Files", command=lambda: self.browse_files_parts_requested("Excel files", self.file_path_PR_entry))
         browse_button_1.grid(row=8, column=0)
 
-        #Selection/ Upload for PartList
+        # Selection/ Upload for PartList
         tk.Label(self, text="Part Lists File (PL):").grid(row=9, column=0)
-        self.file_path_PL_entry = tk.Listbox(self, height=2, width = 50)
+        self.file_path_PL_entry = tk.Listbox(self, height=2, width=50)
         self.file_path_PL_entry.grid(row=10, column=0)
 
-        browse_button_part_list = tk.Button(self, text="Browse Files", command= lambda: self.browse_files_parts_requested("All files", self.file_path_PL_entry))
+        browse_button_part_list = tk.Button(self, text="Browse Files", command=lambda: self.browse_files_parts_requested("All files", self.file_path_PL_entry))
         browse_button_part_list.grid(row=11, column=0)
 
         # main button
         generate_button = tk.Button(self, text="Generate RFQ", command=self.generate_rfq)
         generate_button.grid(row=12, column=0)
 
-        sending_email_button = tk.Button(self, text="Send Email", command = self.sending_email)
-        sending_email_button.grid(row = 13, column = 0)
+        sending_email_button = tk.Button(self, text="Send Email", command=self.sending_email)
+        sending_email_button.grid(row=13, column=0)
     
-    def update_customer_info(self, event= None):
+    def update_customer_info(self, event=None):
         """Update customer information label when a customer is selected."""
         info = self.get_party_person_info()
         self.customer_info_text.delete(1.0, tk.END)
@@ -74,7 +76,6 @@ class RfqGen(tk.Tk):
             self.customer_info_text.insert(tk.END, f"Name: {short_name}\nEmail: {email}")
         else:
             self.customer_info_text.insert(tk.END, "No information available")
-
 
     def get_party_pk(self):
         """ Get the selected customer's partypk """
@@ -103,7 +104,6 @@ class RfqGen(tk.Tk):
             for path in self.filepaths:
                 list_box.insert(0, path)
 
-
         except FileNotFoundError as e:
             print(f"Error during file browse: {e}")
             messagebox.showerror("File Browse Error", "An error occurred during file selection. Please try again.")
@@ -120,6 +120,7 @@ class RfqGen(tk.Tk):
         return destination_path
 
     def show_email_body_popup(self, email_body):
+        """Popup to display the body of the email that will be send with Edit and Confirm options"""
         popup = tk.Toplevel(self)
         popup.title("Email Body")
 
@@ -133,6 +134,7 @@ class RfqGen(tk.Tk):
         confirm_button.pack(side=tk.RIGHT)
 
     def edit_email_body(self, email_body, popup):
+        """ If user wants to edit the email body then this will show up """
         edit_window = tk.Toplevel(popup)
         edit_window.title("Edit Email Body")
 
@@ -144,21 +146,23 @@ class RfqGen(tk.Tk):
         save_button.pack()
 
     def save_email_body(self, edit_text, popup):
+        """ Saves the new body if user edits the email"""
         new_body = edit_text.get("1.0", tk.END)
         self.show_email_body_popup(new_body)
         popup.destroy()
 
     def confirm_send_email(self, email_body, popup):
+        """ This will popup a confirmation box if user clicks on confirm"""
         popup.destroy()
         email_ids = ';'.join(extract_from_excel(rf"y:\PDM\Non-restricted\list_of_email.xlsx", "Email"))
         confirmation = messagebox.askyesno("Confirm", "Are you sure you want to send this email?")
         if confirmation:
-            send_mail("Request for Quote",email_body, email_ids)
+            send_mail("Request for Quote", email_body, email_ids)
         else:
             self.show_email_body_popup(email_body)
 
     def sending_email(self):
-        """ """
+        """ This function is called as soon as the user clicks send Email in the GUI """
         if self.file_path_PR_entry.get(0):
             email_body = create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0]))
             self.show_email_body_popup(email_body)
@@ -168,7 +172,6 @@ class RfqGen(tk.Tk):
             self.file_path_PL_entry.delete(0, tk.END)
             self.rfq_number_text.delete(0, tk.END)
     
-    # TODO: Sid
     def generate_rfq(self):
         """ Main function for Generating RFQ, adding line items and creating a quote """
         if self.customer_select_box.get() and self.file_path_PR_entry.get(0):
@@ -177,7 +180,7 @@ class RfqGen(tk.Tk):
             state, country = self.data_base_conn.get_state_and_country(party_pk)
             customer_rfq_number = self.rfq_number_text.get()
             self.data_base_conn.insert_into_rfq(
-                party_pk, billing_details[0], billing_details[0], billing_details[1], billing_details[2], billing_details[3], billing_details[4], billing_details[5], billing_details[6], state[0][0], country[0][0], customer_rfq_number= customer_rfq_number,
+                party_pk, billing_details[0], billing_details[0], billing_details[1], billing_details[2], billing_details[3], billing_details[4], billing_details[5], billing_details[6], state[0][0], country[0][0], customer_rfq_number=customer_rfq_number,
             )
 
             rfq_pk = self.data_base_conn.get_rfq_pk()
@@ -197,7 +200,7 @@ class RfqGen(tk.Tk):
 
             qty = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "QuantityRequired")
 
-            qty_data = dict(zip(parts,qty))
+            qty_data = dict(zip(parts, qty))
 
             for part_number, description in part_description_data.items():
                 destination_path = rf'y:\PDM\Non-restricted\{self.customer_select_box.get()}\{part_number}'
@@ -208,7 +211,7 @@ class RfqGen(tk.Tk):
                     destination_paths.append(file_path_to_add_to_rfq)
                     self.data_base_conn.upload_documents(file_path_to_add_to_rfq, rfq_fk=rfq_pk)
 
-                item_pk = self.data_base_conn.get_or_create_item(part_number, description= description, purchase = 0, service_item= 0, manufactured_item= 1)
+                item_pk = self.data_base_conn.get_or_create_item(part_number, description=description, purchase=0, service_item=0, manufactured_item=1)
                 matching_paths = [path for path in destination_paths if part_number in path]
                  
                 for url in matching_paths:
@@ -217,7 +220,7 @@ class RfqGen(tk.Tk):
                 quote_pk = self.data_base_conn.create_quote(party_pk, item_pk, 0, part_number)
                 self.data_base_conn.quote_operation(quote_pk)
 
-                a = [6,21,22] #  IssueMat, HT, FIN
+                a = [6, 21, 22]  # IssueMat, HT, FIN
                 quote_assembly_fk = []
 
                 for x in a:
@@ -232,8 +235,8 @@ class RfqGen(tk.Tk):
 
                 if part_number in my_dict:
                     dict_values = my_dict[part_number]
-                    for j,k,l in zip(dict_values, quote_assembly_fk, a):
-                        if j != None:
+                    for j, k, l in zip(dict_values, quote_assembly_fk, a):
+                        if j is not None:
                             self.data_base_conn.create_bom_quote(quote_pk, j, k, l, y)
                             y+=1
                 
