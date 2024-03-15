@@ -5,6 +5,7 @@ from tkinter import ttk, filedialog, messagebox
 from src.pull_excel_data import extract_from_excel
 import os
 import shutil
+import math
 from src.part_info_dict import pk_info_dict, part_info
 from src.sendmail import send_mail
 from src.emailer import material_for_quote_email, create_email_body
@@ -118,8 +119,39 @@ class RfqGen(tk.Tk):
         shutil.copyfile(file_path, destination_path)
 
         return destination_path
+    
+    def show_selection(self):
+        """ This will display a selection box for which we need to send email """
+        items = ["MAT", "FIN", "HT", "ALL"]
+        popup = tk.Toplevel(self)
+        popup.title("Select Item")
+        popup.geometry("300x150")
+        tk.Label(popup, text="Select Item: ").pack()
+        item_select_box = ttk.Combobox(popup, values= items, state="readonly")
+        item_select_box.pack()
+        def send_email():
+            selected_item = item_select_box.get()
+            if selected_item == "ALL":
+                for a in items[:3]:
+                    email_body = create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0]), a)
+                    self.show_email_body_popup(email_body, a)
+                popup.destroy()
+                self.file_path_PR_entry.delete(0, tk.END)
+                self.file_path_PL_entry.delete(0, tk.END)
+                self.rfq_number_text.delete(0, tk.END)
+            else:
+                email_body = create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0]), selected_item)
+                self.show_email_body_popup(email_body, selected_item)
+                popup.destroy()
+                self.file_path_PR_entry.delete(0, tk.END)
+                self.file_path_PL_entry.delete(0, tk.END)
+                self.rfq_number_text.delete(0, tk.END)
 
-    def show_email_body_popup(self, email_body):
+        send_button = tk.Button(popup, text="Send", command=send_email)
+        send_button.pack()
+
+
+    def show_email_body_popup(self, email_body, item_type):
         """Popup to display the body of the email that will be send with Edit and Confirm options"""
         popup = tk.Toplevel(self)
         popup.title("Email Body")
@@ -127,45 +159,99 @@ class RfqGen(tk.Tk):
         body_label = tk.Label(popup, text=email_body)
         body_label.pack()
 
-        edit_button = tk.Button(popup, text="Edit", command=lambda: self.edit_email_body(email_body, popup))
+        edit_button = tk.Button(popup, text="Edit", command=lambda: self.edit_email_body(email_body, popup, item_type))
         edit_button.pack(side=tk.LEFT)
 
-        confirm_button = tk.Button(popup, text="Confirm", command=lambda: self.confirm_send_email(email_body, popup))
+        confirm_button = tk.Button(popup, text="Confirm", command=lambda: self.confirm_send_email(email_body, popup, item_type))
         confirm_button.pack(side=tk.RIGHT)
 
-    def edit_email_body(self, email_body, popup):
+    def edit_email_body(self, email_body, popup, item_type):
         """ If user wants to edit the email body then this will show up """
         edit_window = tk.Toplevel(popup)
         edit_window.title("Edit Email Body")
-
+        
         edit_text = tk.Text(edit_window, width=100, height=50)
         edit_text.insert(tk.END, email_body)
         edit_text.pack()
 
-        save_button = tk.Button(edit_window, text="Save", command=lambda: self.save_email_body(edit_text, popup))
+        save_button = tk.Button(edit_window, text="Save", command=lambda: self.save_email_body(edit_text, popup, item_type))
         save_button.pack()
 
-    def save_email_body(self, edit_text, popup):
+    def save_email_body(self, edit_text, popup, item_type):
         """ Saves the new body if user edits the email"""
         new_body = edit_text.get("1.0", tk.END)
-        self.show_email_body_popup(new_body)
+        self.show_email_body_popup(new_body, item_type)
         popup.destroy()
 
-    def confirm_send_email(self, email_body, popup):
-        """ This will popup a confirmation box if user clicks on confirm"""
+    def confirm_send_email(self, email_body, popup, item_type):
+        """ This will popup a confirmation box if the user clicks on confirm"""
         popup.destroy()
-        email_ids = ';'.join(extract_from_excel(rf"y:\PDM\Non-restricted\list_of_email.xlsx", "Email"))
+        
+        email_ids = []
+        ids = extract_from_excel(rf"y:\PDM\Non-restricted\list_of_email.xlsx", f"Email{item_type}")
+        
+        for email in ids:
+            # Check if email is a float and NaN
+            if isinstance(email, float) and math.isnan(email):
+                email = None
+            email_ids.append(email)
+            
+        # Remove None values
+        email_ids = [email for email in email_ids if email is not None]
+        
         confirmation = messagebox.askyesno("Confirm", "Are you sure you want to send this email?")
+        
         if confirmation:
-            send_mail("Request for Quote", email_body, email_ids)
+            self.edit_email_ids(email_body, email_ids)
         else:
-            self.show_email_body_popup(email_body)
+            self.show_email_body_popup(email_body, item_type)
+    
+    def edit_email_ids(self, email_body, email_ids):
+        """Popup to display the email IDs with Edit and Confirm options"""
+        edit_popup = tk.Toplevel()
+        edit_popup.title("Supplier Email IDs")
+
+        # Entry widget for adding new email address
+        tk.Label(edit_popup, text="Enter Email-Id you want to ADD: ").pack()
+        email_entry = tk.Entry(edit_popup, width=40)
+        email_entry.pack()
+
+        # Add the entered email address to the Listbox
+        def add_email():
+            email = email_entry.get()
+            if email:
+                listbox.insert(tk.END, email)
+                email_entry.delete(0, tk.END)
+
+        add_button = tk.Button(edit_popup, text="Add", command=add_email)
+        add_button.pack()
+
+
+        # Create a Listbox to display email IDs
+        tk.Label(edit_popup, text=" Email-Ids: ").pack()
+        listbox = tk.Listbox(edit_popup, selectmode=tk.SINGLE, width=40, height=10)
+        for email_id in email_ids:
+            listbox.insert(tk.END, email_id)
+        listbox.pack()
+
+        
+        # Remove selected email ID when Remove button is clicked
+        def remove_email_id():
+            selected_index = listbox.curselection()
+            if selected_index:
+                listbox.delete(selected_index)
+
+        remove_button = tk.Button(edit_popup, text="Remove", command=remove_email_id)
+        remove_button.pack()
+
+        confirm_button = tk.Button(edit_popup, text="Confirm", command=lambda: [send_mail("Request for Quote", email_body, ';'.join(listbox.get(0, tk.END))), edit_popup.destroy()])
+        confirm_button.pack(side=tk.RIGHT)
+
 
     def sending_email(self):
         """ This function is called as soon as the user clicks send Email in the GUI """
         if self.file_path_PR_entry.get(0):
-            email_body = create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0]))
-            self.show_email_body_popup(email_body)
+            self.show_selection()
         else:
             messagebox.showerror("ERROR", "Upload Parts Requested File")
             self.file_path_PR_entry.delete(0, tk.END)
@@ -254,8 +340,7 @@ class RfqGen(tk.Tk):
             messagebox.showinfo("Success", f"RFQ generated successfully! RFQ Number: {rfq_pk}")
             answer = messagebox.askyesno("Confirmation", "Do you want to send an email to the supplier for a quote?")
             if answer:
-                email_body = create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0]))
-                self.show_email_body_popup(email_body)
+                self.show_selection()
             
             self.file_path_PL_entry.delete(0, tk.END)
             self.file_path_PR_entry.delete(0, tk.END)
