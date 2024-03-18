@@ -9,6 +9,7 @@ import math
 from src.part_info_dict import pk_info_dict, part_info
 from src.sendmail import send_mail
 from src.emailer import material_for_quote_email, create_email_body
+from src.email_receiver import get_email_ids
 
 
 class RfqGen(tk.Tk):
@@ -122,7 +123,7 @@ class RfqGen(tk.Tk):
     
     def show_selection(self):
         """ This will display a selection box for which we need to send email """
-        items = ["MAT", "FIN", "HT", "ALL"]
+        items = ["MAT-AL", "MAT-STEEL", "MAT-EXT", "FIN", "HT-AL", "HT-STEEL" ]
         popup = tk.Toplevel(self)
         popup.title("Select Item")
         popup.geometry("300x150")
@@ -188,7 +189,8 @@ class RfqGen(tk.Tk):
         popup.destroy()
         
         email_ids = []
-        ids = extract_from_excel(rf"y:\PDM\Non-restricted\list_of_email.xlsx", f"Email{item_type}")
+        # ids = extract_from_excel(rf"y:\PDM\Non-restricted\list_of_email.xlsx", f"Email{item_type}")
+        ids = get_email_ids(item_type)
         
         for email in ids:
             # Check if email is a float and NaN

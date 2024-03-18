@@ -39,17 +39,18 @@ def material_for_quote_email(filepath):
 def create_email_body(material_dict, item_type=None ):
     " returns an Email body that needs to be send to supplier"
     email_body = "Dear Supplier,\n\n"
-    email_body += "We are in need of the following materials and would like to request a quote for each:\n\n"
+    email_body += "Hope you're doing well.\n"
+    email_body += "We are in need of the following materials and would like to request a quote on Pricing and Lead Time for each:\n\n"
     
     for material, info in material_dict.items():
         length, width, thickness, quantity, finish_code, heat_treat, part_number = info
-        email_body += f"Manufacturing Details for {part_number}: \n\n"
+        email_body += f"Manufacturing Details for {part_number}: \n"
         email_body += f"Material: {material},\n"
         email_body += f"Dimensions (Length x Width x Thickness): {length} x {width} x {thickness},\n"
         if item_type == "FIN":
             if finish_code:
                 email_body += f"Finish Information: {finish_code},\n"
-        if item_type == "HT":
+        if item_type == "HT-AL" or item_type == "HT-STEEL":
             if heat_treat:
                 email_body += f"Heat Treat Information: {heat_treat},\n"
         email_body += f"Quantity Required: {quantity}\n\n"
