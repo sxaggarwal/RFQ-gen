@@ -121,22 +121,38 @@ class MieTrak:
         self.cursor.execute(query, (document_path, val, 1))
         self.conn.commit()
 
-    def get_or_create_item(self, part_number: str, item_type_fk=1, mps_item=1, purchase=1, forecast_on_mrp=1, mps_on_mrp=1, service_item=1, unit_of_measure_set_fk=1, vendor_unit=1.0, manufactured_item=0, calculation_type_fk=17, inventoriable=1, purchase_order_comment=None,  description=None, comment=None):
+    def get_or_create_item(self, part_number: str, item_type_fk=1, mps_item=1, purchase=1, forecast_on_mrp=1, mps_on_mrp=1, service_item=1, unit_of_measure_set_fk=1, vendor_unit=1.0, manufactured_item=0, calculation_type_fk=17, inventoriable=1, purchase_order_comment=None,  description=None, comment=None, only_create = None):
         """ Fetches ItemPK if the item exists else it creates the item and then returns the ItemPK"""
-        query = "select ItemPk from item where PartNumber=(?)"
-        result = self.cursor.execute(query, part_number).fetchone()
-        if result:
-            return result[0]
-        else:
+        if only_create == 1:
             item_inventory_pk = self.create_item_inventory()
             query = ("insert into item (ItemInventoryFk, PartNumber, ItemTypeFK, Description, Comment, MPSItem, "
                      "Purchase, ForecastOnMRP, MPSOnMRP, ServiceItem, PurchaseOrderComment, UnitOfMeasureSetFK, "
                      "VendorUnit, ManufacturedItem, CalculationTypeFK, Inventoriable) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "
                      "?, ?, ?, ?, ?, ?, ?, ?)")
             self.cursor.execute(query, (item_inventory_pk, part_number, item_type_fk, description, comment, mps_item, purchase, forecast_on_mrp, mps_on_mrp, service_item, purchase_order_comment, unit_of_measure_set_fk, vendor_unit, manufactured_item, calculation_type_fk, inventoriable))
+            self.cursor.execute("SELECT IDENT_CURRENT('Item')")
+            result = self.cursor.fetchone()[0]
             self.conn.commit()
-            result = self.cursor.execute(f"select ItemPK from item where PartNumber = '{part_number}'").fetchall()
-            return result[0][0]
+            return result
+            # result = self.cursor.execute(f"select ItemPK from item where PartNumber = '{part_number}'").fetchall()
+        else:
+            query = "select ItemPk from item where PartNumber=(?)"
+            result = self.cursor.execute(query, part_number).fetchone()
+            if result:
+                return result[0]
+            else:
+                item_inventory_pk = self.create_item_inventory()
+                query = ("insert into item (ItemInventoryFk, PartNumber, ItemTypeFK, Description, Comment, MPSItem, "
+                        "Purchase, ForecastOnMRP, MPSOnMRP, ServiceItem, PurchaseOrderComment, UnitOfMeasureSetFK, "
+                        "VendorUnit, ManufacturedItem, CalculationTypeFK, Inventoriable) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "
+                        "?, ?, ?, ?, ?, ?, ?, ?)")
+                
+                self.cursor.execute(query, (item_inventory_pk, part_number, item_type_fk, description, comment, mps_item, purchase, forecast_on_mrp, mps_on_mrp, service_item, purchase_order_comment, unit_of_measure_set_fk, vendor_unit, manufactured_item, calculation_type_fk, inventoriable))
+                self.cursor.execute("SELECT IDENT_CURRENT('Item')")
+                result = self.cursor.fetchone()[0]
+                self.conn.commit()
+                # result = self.cursor.execute(f"select ItemPK from item where PartNumber = '{part_number}'").fetchall()[0][0]
+                return result
         
     def create_item_inventory(self):  # HELPER FUNC
         """ Insert data in Item Inventory"""

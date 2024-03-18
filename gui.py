@@ -345,7 +345,7 @@ class RfqGen(tk.Tk):
                 self.show_selection()
             
             self.file_path_PL_entry.delete(0, tk.END)
-            self.file_path_PR_entry.delete(0, tk.END)
+            # self.file_path_PR_entry.delete(0, tk.END)
             self.rfq_number_text.delete(0, tk.END)
 
         else:

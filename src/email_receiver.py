@@ -115,13 +115,13 @@ def get_item_type(quote_fk = None, itemfk = None):
     return mat_email, ht_email, fin_email
 
 
-if __name__ == "__main__":
-    filepath = r"c:\Users\saggarwal\Documents\quote_price.xlsx"
-    # insert_item_price(filepath, 2167)
-    mat_email, ht_email, fin_email = get_item_type(quote_fk=3060)
-    print(f"HT_Email: {ht_email}")
-    print(f"FIN_Email: {fin_email}")
-    print(f"Mat_Email: {mat_email}")
+# if __name__ == "__main__":
+#     filepath = r"c:\Users\saggarwal\Documents\quote_price.xlsx"
+#     # insert_item_price(filepath, 2167)
+#     mat_email, ht_email, fin_email = get_item_type(quote_fk=3060)
+#     print(f"HT_Email: {ht_email}")
+#     print(f"FIN_Email: {fin_email}")
+#     print(f"Mat_Email: {mat_email}")
 
 
 

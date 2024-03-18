@@ -13,22 +13,26 @@ def pk_info_dict(filepath):
     material = extract_from_excel(filepath, "Material")
     finish_code = extract_from_excel(filepath, "FinishCode")
     heat_treat = extract_from_excel(filepath, "HeatTreat")
+    length = extract_from_excel(filepath, "Length")
+    width = extract_from_excel(filepath, "Width")
     my_dict = {}
 
-    for d, a, b, c in zip(part_number, material, finish_code, heat_treat):
+    for d, a, b, c, e, f in zip(part_number, material, finish_code, heat_treat, length, width):
         mat_pk = None
         fin_pk = None
         ht_pk = None
         a = None if isinstance(a, float) and math.isnan(a) else a
         b = None if isinstance(b, float) and math.isnan(b) else b
         c = None if isinstance(c, float) and math.isnan(c) else c
+        e = None if isinstance(e, float) and math.isnan(e) else e
+        f = None if isinstance(f, float) and math.isnan(f) else f
 
         if a:
-            result = data_base_conn.execute_query("Select ItemPK from Item where PartNumber = ?", (a,))
+            result = data_base_conn.execute_query("Select ItemPK from Item where PartNumber = ? and StockLength = ? and StockWidth = ?", (a,e,f))
             if result:
                 mat_pk = result[0][0]  # Assuming execute_query returns a list of tuples
             else:
-                pk = data_base_conn.get_or_create_item(a, service_item=0, purchase=0, manufactured_item=1, item_type_fk= 2)
+                pk = data_base_conn.get_or_create_item(a, service_item=0, purchase=0, manufactured_item=1, item_type_fk= 2, only_create = 1)
                 mat_pk = pk
 
         if b:
@@ -36,11 +40,11 @@ def pk_info_dict(filepath):
             if result:
                 fin_pk = result[0][0]
             else:
-                pk = data_base_conn.get_or_create_item(f"OP Finish - {d}",item_type_fk=5, description= b, comment = b, purchase_order_comment=b, inventoriable= 0)
+                pk = data_base_conn.get_or_create_item(f"{d} - OP Finish", item_type_fk=5, comment = b, purchase_order_comment=b, inventoriable=0, only_create=1)
                 fin_pk = pk
 
         if c:
-            pk = data_base_conn.get_or_create_item(f"OP HT - {d}", item_type_fk=5, description= c, comment= c, purchase_order_comment= c, inventoriable= 0)
+            pk = data_base_conn.get_or_create_item(f"{d} - OP HT", item_type_fk=5, description= c, comment= c, purchase_order_comment= c, inventoriable= 0, only_create=1)
             ht_pk = pk
 
         my_dict[d] = (mat_pk, ht_pk, fin_pk)
