@@ -127,56 +127,74 @@ class RfqGen(tk.Tk):
         popup = tk.Toplevel(self)
         popup.title("Select Item")
         popup.geometry("300x150")
+        popup.grab_set()
         tk.Label(popup, text="Select Item: ").pack()
         item_select_box = ttk.Combobox(popup, values= items, state="readonly")
         item_select_box.pack()
+
         def send_email():
             selected_item = item_select_box.get()
-            if selected_item == "ALL":
-                for a in items[:3]:
-                    email_body = create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0]), a)
-                    self.show_email_body_popup(email_body, a)
-                popup.destroy()
-                self.file_path_PR_entry.delete(0, tk.END)
-                self.file_path_PL_entry.delete(0, tk.END)
-                self.rfq_number_text.delete(0, tk.END)
-            else:
-                email_body = create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0]), selected_item)
-                self.show_email_body_popup(email_body, selected_item)
-                popup.destroy()
-                self.file_path_PR_entry.delete(0, tk.END)
-                self.file_path_PL_entry.delete(0, tk.END)
-                self.rfq_number_text.delete(0, tk.END)
+            if not selected_item:
+                messagebox.showerror("Error", "Please select an item.")
+                return
+            
+            email_body = create_email_body(material_for_quote_email(self.file_path_PR_entry.get(0, tk.END)[0]), selected_item)
+            self.show_email_body_popup(email_body, selected_item)
+            popup.destroy()
+            self.file_path_PR_entry.delete(0, tk.END)
+            self.file_path_PL_entry.delete(0, tk.END)
+            self.rfq_number_text.delete(0, tk.END)
 
         send_button = tk.Button(popup, text="Send", command=send_email)
         send_button.pack()
 
 
     def show_email_body_popup(self, email_body, item_type):
-        """Popup to display the body of the email that will be send with Edit and Confirm options"""
+        """Popup to display the body of the email that will be sent with Edit and Confirm options"""
         popup = tk.Toplevel(self)
         popup.title("Email Body")
+        popup.grab_set()
 
-        body_label = tk.Label(popup, text=email_body)
-        body_label.pack()
+        # Create a Text widget for displaying the email body
+        body_text = tk.Text(popup, wrap=tk.WORD, height=20, width=60)
+        body_text.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
 
+        # Insert the email body into the Text widget
+        body_text.insert(tk.END, email_body)
+        body_text.config(state="disabled")
+
+        # Create a scrollbar and associate it with the Text widget
+        scrollbar = tk.Scrollbar(popup, command=body_text.yview)
+        scrollbar.grid(row=0, column=2, sticky="ns")
+        body_text.config(yscrollcommand=scrollbar.set)
+
+        # Create Edit and Confirm buttons
         edit_button = tk.Button(popup, text="Edit", command=lambda: self.edit_email_body(email_body, popup, item_type))
-        edit_button.pack(side=tk.LEFT)
+        edit_button.grid(row=1, column=0, padx=10, pady=10, sticky="w")
 
         confirm_button = tk.Button(popup, text="Confirm", command=lambda: self.confirm_send_email(email_body, popup, item_type))
-        confirm_button.pack(side=tk.RIGHT)
+        confirm_button.grid(row=1, column=1, padx=10, pady=10, sticky="e")
+
+        # Make the Text widget and scrollbar expandable
+        popup.rowconfigure(0, weight=1)
+        popup.columnconfigure(0, weight=1)
 
     def edit_email_body(self, email_body, popup, item_type):
         """ If user wants to edit the email body then this will show up """
         edit_window = tk.Toplevel(popup)
         edit_window.title("Edit Email Body")
+        edit_window.grab_set()
         
         edit_text = tk.Text(edit_window, width=100, height=50)
         edit_text.insert(tk.END, email_body)
-        edit_text.pack()
+        edit_text.grid(row=0, column=0, sticky="nsew")
+
+        scrollbar = tk.Scrollbar(edit_window, command=edit_text.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        edit_text.config(yscrollcommand=scrollbar.set)
 
         save_button = tk.Button(edit_window, text="Save", command=lambda: self.save_email_body(edit_text, popup, item_type))
-        save_button.pack()
+        save_button.grid(row=1, column=0, columnspan=2, pady=(10, 0), sticky="nsew")
 
     def save_email_body(self, edit_text, popup, item_type):
         """ Saves the new body if user edits the email"""
@@ -189,7 +207,6 @@ class RfqGen(tk.Tk):
         popup.destroy()
         
         email_ids = []
-        # ids = extract_from_excel(rf"y:\PDM\Non-restricted\list_of_email.xlsx", f"Email{item_type}")
         ids = get_email_ids(item_type)
         
         for email in ids:
@@ -212,6 +229,7 @@ class RfqGen(tk.Tk):
         """Popup to display the email IDs with Edit and Confirm options"""
         edit_popup = tk.Toplevel()
         edit_popup.title("Supplier Email IDs")
+        edit_popup.grab_set()
 
         # Entry widget for adding new email address
         tk.Label(edit_popup, text="Enter Email-Id you want to ADD: ").pack()
@@ -246,7 +264,16 @@ class RfqGen(tk.Tk):
         remove_button = tk.Button(edit_popup, text="Remove", command=remove_email_id)
         remove_button.pack()
 
-        confirm_button = tk.Button(edit_popup, text="Confirm", command=lambda: [send_mail("Request for Quote", email_body, ';'.join(listbox.get(0, tk.END))), edit_popup.destroy()])
+        def send_email_with_check():
+            email_list = listbox.get(0, tk.END)
+            if not email_list:
+                messagebox.showerror("Error", "Please add at least one email ID.")
+            else:
+                send_mail("Request for Quote", email_body, ';'.join(email_list))
+                messagebox.showinfo("Success", "Email sent successfully!")
+                edit_popup.destroy()
+
+        confirm_button = tk.Button(edit_popup, text="Confirm", command=send_email_with_check)
         confirm_button.pack(side=tk.RIGHT)
 
 
@@ -267,17 +294,16 @@ class RfqGen(tk.Tk):
             billing_details = self.data_base_conn.get_address_of_party(party_pk)
             state, country = self.data_base_conn.get_state_and_country(party_pk)
             customer_rfq_number = self.rfq_number_text.get()
-            self.data_base_conn.insert_into_rfq(
+            rfq_pk = self.data_base_conn.insert_into_rfq(
                 party_pk, billing_details[0], billing_details[0], billing_details[1], billing_details[2], billing_details[3], billing_details[4], billing_details[5], billing_details[6], state[0][0], country[0][0], customer_rfq_number=customer_rfq_number,
             )
-
-            rfq_pk = self.data_base_conn.get_rfq_pk()
 
             user_selected_file_paths = list(self.file_path_PR_entry.get(0, tk.END) + self.file_path_PL_entry.get(0, tk.END))
 
             destination_paths = []
             i = 1
             y = 1
+            count = 1
             my_dict = pk_info_dict(self.file_path_PR_entry.get(0, tk.END)[0])
 
             info_dict = part_info(self.file_path_PR_entry.get(0, tk.END)[0])
@@ -293,11 +319,14 @@ class RfqGen(tk.Tk):
             for part_number, description in part_description_data.items():
                 destination_path = rf'y:\PDM\Non-restricted\{self.customer_select_box.get()}\{part_number}'
                 for file in user_selected_file_paths:
+                    if count==1:
                     # folder is get or created and file is copied to this folder
-                    file_path_to_add_to_rfq = self.transfer_file_to_folder(destination_path, file)
-                    # we will then add the filepath to the rfq created above
-                    destination_paths.append(file_path_to_add_to_rfq)
-                    self.data_base_conn.upload_documents(file_path_to_add_to_rfq, rfq_fk=rfq_pk)
+                        file_path_to_add_to_rfq = self.transfer_file_to_folder(destination_path, file)
+                        # we will then add the filepath to the rfq created above
+                        destination_paths.append(file_path_to_add_to_rfq)
+                        self.data_base_conn.upload_documents(file_path_to_add_to_rfq, rfq_fk=rfq_pk)
+                
+                count+=1
 
                 item_pk = self.data_base_conn.get_or_create_item(part_number, description=description, purchase=0, service_item=0, manufactured_item=1)
                 matching_paths = [path for path in destination_paths if part_number in path]

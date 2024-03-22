@@ -12,6 +12,7 @@ flammability_test.py
 MieTrakAPI.log
 extra.py
 gui.spec
+generate_email.py
 MieTrakAPI.log
 create_excel/
 rfq_gen/

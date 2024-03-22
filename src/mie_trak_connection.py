@@ -100,16 +100,13 @@ class MieTrak:
                         country,
                         customer_rfq_number
             ))
+            self.cursor.execute("SELECT IDENT_CURRENT('RequestForQuote')")
+            rfq_pk = self.cursor.fetchone()[0]
             self.conn.commit()  # Commit the transaction for changes to take effect
         except pyodbc.Error as e:
             print(e)
+        return rfq_pk
         
-    def get_rfq_pk(self):
-        """Extracting the primary key where the data was inserted in RFQ"""
-        query = "SELECT RequestForQuotePK FROM RequestForQuote"
-        results = self.execute_query(query)
-        return results[-1][0]
-
     def upload_documents(self, document_path: str, rfq_fk=None, item_fk=None):
         """ Function for attaching documents """
         if not rfq_fk and not item_fk:
@@ -134,7 +131,6 @@ class MieTrak:
             result = self.cursor.fetchone()[0]
             self.conn.commit()
             return result
-            # result = self.cursor.execute(f"select ItemPK from item where PartNumber = '{part_number}'").fetchall()
         else:
             query = "select ItemPk from item where PartNumber=(?)"
             result = self.cursor.execute(query, part_number).fetchone()
@@ -151,14 +147,15 @@ class MieTrak:
                 self.cursor.execute("SELECT IDENT_CURRENT('Item')")
                 result = self.cursor.fetchone()[0]
                 self.conn.commit()
-                # result = self.cursor.execute(f"select ItemPK from item where PartNumber = '{part_number}'").fetchall()[0][0]
                 return result
         
     def create_item_inventory(self):  # HELPER FUNC
         """ Insert data in Item Inventory"""
         self.cursor.execute("insert into ItemInventory (QuantityOnHand) values (0.000)")
+        self.cursor.execute("SELECT IDENT_CURRENT('ItemInventory')")
+        result = self.cursor.fetchone()[0]
         self.conn.commit()
-        return self.cursor.execute("select ItemInventoryPK from ItemInventory").fetchall()[-1][0]
+        return result
     
     def insert_part_details_in_item(self, item_pk, part_number, values, item_type = None):
         """
