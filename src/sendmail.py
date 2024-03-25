@@ -18,7 +18,7 @@ def send_mail(subject, body, recipient):
 
         logger.info(f"Email command executed. Recipient -> {recipient}. SENT STATUS PENDING")
 
-    time.sleep(5)
+    time.sleep(1)
 
     with get_connection() as conn:
         query = "SELECT IDENT_CURRENT('msdb.dbo.sysmail_allitems')"

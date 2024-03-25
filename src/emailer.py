@@ -61,7 +61,6 @@ def create_email_body(material_dict, item_type=None ):
                 email_body += f"Quantity Required: {quantity}\n\n"
         
         else:
-            email_body += f"Manufacturing Details for {part_number}: \n"
             email_body += f"Material: {material},\n"
             email_body += f"Dimensions (Length x Width x Thickness): {length} x {width} x {thickness},\n"
             email_body += f"Quantity Required: {quantity}\n\n"

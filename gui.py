@@ -269,9 +269,11 @@ class RfqGen(tk.Tk):
             if not email_list:
                 messagebox.showerror("Error", "Please add at least one email ID.")
             else:
-                send_mail("Request for Quote", email_body, ';'.join(email_list))
+                for email_id in email_list:
+                    send_mail("Request for Quote", email_body, email_id)
+                    edit_popup.destroy()
+                
                 messagebox.showinfo("Success", "Email sent successfully!")
-                edit_popup.destroy()
 
         confirm_button = tk.Button(edit_popup, text="Confirm", command=send_email_with_check)
         confirm_button.pack(side=tk.RIGHT)

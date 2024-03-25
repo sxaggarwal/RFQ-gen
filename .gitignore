@@ -9,6 +9,7 @@ rfq_scripts/
 structure.py
 sonaca_honda.py
 flammability_test.py
+assy.py
 MieTrakAPI.log
 extra.py
 gui.spec

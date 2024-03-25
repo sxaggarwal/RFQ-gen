@@ -257,3 +257,90 @@ shubham.kws@gmail.com
 2024-03-22 11:51:58,426 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFk FROM PartyBuyer WHERE PartyFK='3764' AND Description='STEEL/ALUMINUM HT'
 2024-03-22 11:51:58,433 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3767'
 2024-03-22 11:51:58,441 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='2517'
+2024-03-25 08:04:33,878 - GeneralAPI - PartyBuyer - INFO - init new. Table Name - PartyBuyer
+2024-03-25 08:04:33,929 - GeneralAPI - Party - INFO - init new. Table Name - Party
+2024-03-25 08:04:33,929 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFK FROM PartyBuyer WHERE PartyFK='3755'
+2024-03-25 08:04:33,929 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFk FROM PartyBuyer WHERE PartyFK='3764' AND Description='STEEL/ALUMINUM HT'
+2024-03-25 08:04:33,946 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3767'
+2024-03-25 08:04:33,950 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3705'
+2024-03-25 08:04:33,954 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3756'
+2024-03-25 08:04:33,957 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3706'
+2024-03-25 08:04:33,960 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3757'
+2024-03-25 08:04:33,964 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3758'
+2024-03-25 08:04:33,968 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3759'
+2024-03-25 08:04:33,971 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3760'
+2024-03-25 08:04:33,977 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3761'
+2024-03-25 08:04:33,979 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3762'
+2024-03-25 08:04:33,982 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3763'
+2024-03-25 08:04:33,982 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3779'
+2024-03-25 08:04:33,982 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3768'
+2024-03-25 08:14:51,824 - GeneralAPI - PartyBuyer - INFO - init new. Table Name - PartyBuyer
+2024-03-25 08:14:51,853 - GeneralAPI - Party - INFO - init new. Table Name - Party
+2024-03-25 08:14:51,854 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFk FROM PartyBuyer WHERE PartyFK='3764' AND Description='ALUMINUM HT'
+2024-03-25 08:14:51,878 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFk FROM PartyBuyer WHERE PartyFK='3764' AND Description='STEEL/ALUMINUM HT'
+2024-03-25 08:14:51,885 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3767'
+2024-03-25 08:14:51,893 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3766'
+2024-03-25 08:15:43,604 - MAIL - INFO - Email command executed. Recipient -> shubham.aggarwal@etezazicorps.com. SENT STATUS PENDING
+2024-03-25 08:15:48,646 - MAIL - INFO - Eamil Sent. SENT STATUS CONFIRMED
+2024-03-25 08:15:50,708 - MAIL - INFO - Email command executed. Recipient -> siddharth.vyas@etezazicorps.com. SENT STATUS PENDING
+2024-03-25 08:15:55,726 - MAIL - INFO - Eamil Sent. SENT STATUS CONFIRMED
+2024-03-25 08:19:02,916 - GeneralAPI - PartyBuyer - INFO - init new. Table Name - PartyBuyer
+2024-03-25 08:19:02,916 - GeneralAPI - Party - INFO - init new. Table Name - Party
+2024-03-25 08:19:02,916 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFk FROM PartyBuyer WHERE PartyFK='3764' AND Description='STEEL HT'
+2024-03-25 08:19:02,938 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFk FROM PartyBuyer WHERE PartyFK='3764' AND Description='STEEL/ALUMINUM HT'
+2024-03-25 08:19:02,941 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3767'
+2024-03-25 08:19:02,947 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='2517'
+2024-03-25 08:19:54,462 - MAIL - INFO - Email command executed. Recipient -> shubham.aggarwal@etezazicorps.com. SENT STATUS PENDING
+2024-03-25 08:19:55,503 - MAIL - INFO - Eamil Sent. SENT STATUS CONFIRMED
+2024-03-25 08:19:55,518 - MAIL - INFO - Email command executed. Recipient -> siddharth.vyas@etezazicorps.com. SENT STATUS PENDING
+2024-03-25 08:19:56,524 - MAIL - INFO - Eamil Sent. SENT STATUS CONFIRMED
+2024-03-25 08:25:44,528 - GeneralAPI - PartyBuyer - INFO - init new. Table Name - PartyBuyer
+2024-03-25 08:25:44,554 - GeneralAPI - Party - INFO - init new. Table Name - Party
+2024-03-25 08:25:44,554 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFk FROM PartyBuyer WHERE PartyFK='3764' AND Description='ALUMINUM HT'
+2024-03-25 08:25:44,558 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFk FROM PartyBuyer WHERE PartyFK='3764' AND Description='STEEL/ALUMINUM HT'
+2024-03-25 08:25:44,562 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3767'
+2024-03-25 08:25:44,566 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3766'
+2024-03-25 08:26:21,557 - MAIL - INFO - Email command executed. Recipient -> shubham.aggarwal@etezazicorps.com. SENT STATUS PENDING
+2024-03-25 08:26:21,608 - MAIL - CRITICAL - Unknown error. Message not delivered
+2024-03-25 08:26:21,610 - MAIL - INFO - Email command executed. Recipient -> siddharth.vyas@etezazicorps.com. SENT STATUS PENDING
+2024-03-25 08:26:21,633 - MAIL - CRITICAL - Unknown error. Message not delivered
+2024-03-25 14:55:08,577 - GeneralAPI - PartyBuyer - INFO - init new. Table Name - PartyBuyer
+2024-03-25 14:55:08,592 - GeneralAPI - Party - INFO - init new. Table Name - Party
+2024-03-25 14:55:08,592 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFK FROM PartyBuyer WHERE PartyFK='3755'
+2024-03-25 14:55:08,597 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFk FROM PartyBuyer WHERE PartyFK='3764' AND Description='STEEL/ALUMINUM HT'
+2024-03-25 14:55:08,601 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3767'
+2024-03-25 14:55:08,606 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3705'
+2024-03-25 14:55:08,613 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3756'
+2024-03-25 14:55:08,617 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3706'
+2024-03-25 14:55:08,620 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3757'
+2024-03-25 14:55:08,622 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3758'
+2024-03-25 14:55:08,625 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3759'
+2024-03-25 14:55:08,629 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3760'
+2024-03-25 14:55:08,635 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3761'
+2024-03-25 14:55:08,638 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3762'
+2024-03-25 14:55:08,640 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3763'
+2024-03-25 14:55:08,643 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3779'
+2024-03-25 14:55:08,648 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3768'
+2024-03-25 14:55:43,600 - GeneralAPI - PartyBuyer - INFO - init new. Table Name - PartyBuyer
+2024-03-25 14:55:43,608 - GeneralAPI - Party - INFO - init new. Table Name - Party
+2024-03-25 14:55:43,609 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFk FROM PartyBuyer WHERE PartyFK='3764' AND Description='ALUMINUM HT'
+2024-03-25 14:55:43,612 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFk FROM PartyBuyer WHERE PartyFK='3764' AND Description='STEEL/ALUMINUM HT'
+2024-03-25 14:55:43,617 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3767'
+2024-03-25 14:55:43,621 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3766'
+2024-03-25 15:00:02,329 - GeneralAPI - PartyBuyer - INFO - init new. Table Name - PartyBuyer
+2024-03-25 15:00:02,340 - GeneralAPI - Party - INFO - init new. Table Name - Party
+2024-03-25 15:00:02,340 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFK FROM PartyBuyer WHERE PartyFK='3755'
+2024-03-25 15:00:02,344 - GeneralAPI - PartyBuyer - INFO - GET METHOD Query Built -> SELECT BuyerFk FROM PartyBuyer WHERE PartyFK='3764' AND Description='STEEL/ALUMINUM HT'
+2024-03-25 15:00:02,349 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3767'
+2024-03-25 15:00:02,354 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3705'
+2024-03-25 15:00:02,359 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3756'
+2024-03-25 15:00:02,364 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3706'
+2024-03-25 15:00:02,368 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3757'
+2024-03-25 15:00:02,372 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3758'
+2024-03-25 15:00:02,376 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3759'
+2024-03-25 15:00:02,382 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3760'
+2024-03-25 15:00:02,386 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3761'
+2024-03-25 15:00:02,390 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3762'
+2024-03-25 15:00:02,397 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3763'
+2024-03-25 15:00:02,402 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3779'
+2024-03-25 15:00:02,407 - GeneralAPI - Party - INFO - GET METHOD Query Built -> SELECT Email FROM Party WHERE PartyPK='3768'

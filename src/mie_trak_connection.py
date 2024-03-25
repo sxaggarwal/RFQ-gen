@@ -202,8 +202,10 @@ class MieTrak:
         division_fk = 1
         query = "INSERT INTO Quote (CustomerFK, ItemFK, QuoteType, PartNumber, DivisionFK) VALUES (?,?,?,?,?) "
         self.cursor.execute(query, (customer_fk, item_fk, quote_type, part_number, division_fk))
+        self.cursor.execute("SELECT IDENT_CURRENT('Quote')")
+        return_pk = self.cursor.fetchone()[0]
         self.conn.commit()
-        return self.cursor.execute("SELECT QuotePK from Quote").fetchall()[-1][0]
+        return return_pk
     
     def quote_operations_template(self):
         """ Fetches the operation template 494 for the quote """
