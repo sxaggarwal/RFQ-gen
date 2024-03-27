@@ -107,15 +107,15 @@ class MieTrak:
             print(e)
         return rfq_pk
         
-    def upload_documents(self, document_path: str, rfq_fk=None, item_fk=None, document_type_fk=None, secure_document=0):
+    def upload_documents(self, document_path: str, rfq_fk=None, item_fk=None, document_type_fk=None, secure_document=0, document_group_pk=None, print_with_purchase_order=None):
         """ Function for attaching documents """
         if not rfq_fk and not item_fk:
             raise TypeError("Both values can not be None")
         
         val = rfq_fk if item_fk is None else item_fk
-        query = (f"INSERT INTO DOCUMENT (URL, {"RequestForQuoteFK" if item_fk is None else "ItemFk"}, Active, DocumentTypeFK, SecureDocument,) VALUES ("
-                 f"?,?,?,?,?)")
-        self.cursor.execute(query, (document_path, val, 1, document_type_fk, secure_document))
+        query = (f"INSERT INTO DOCUMENT (URL, {"RequestForQuoteFK" if item_fk is None else "ItemFk"}, Active, DocumentTypeFK, SecureDocument, DocumentGroupFK, PrintWithPurchaseOrder) VALUES ("
+                 f"?,?,?,?,?,?,?)")
+        self.cursor.execute(query, (document_path, val, 1, document_type_fk, secure_document, document_group_pk, print_with_purchase_order))
         self.conn.commit()
 
     def get_or_create_item(self, part_number: str, item_type_fk=1, mps_item=1, purchase=1, forecast_on_mrp=1, mps_on_mrp=1, service_item=1, unit_of_measure_set_fk=1, vendor_unit=1.0, manufactured_item=0, calculation_type_fk=17, inventoriable=1, purchase_order_comment=None,  description=None, comment=None, only_create=None, bulk_ship=1, ship_loose=1):

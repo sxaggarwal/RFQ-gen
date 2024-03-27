@@ -304,10 +304,8 @@ class RfqGen(tk.Tk):
             rfq_pk = self.data_base_conn.insert_into_rfq(
                 party_pk, billing_details[0], billing_details[0], billing_details[1], billing_details[2], billing_details[3], billing_details[4], billing_details[5], billing_details[6], state[0][0], country[0][0], customer_rfq_number=customer_rfq_number,
             )
-
+            path_dict = {}
             user_selected_file_paths = list(self.file_path_PR_entry.get(0, tk.END) + self.file_path_PL_entry.get(0, tk.END))
-
-            destination_paths = []
             i = 1
             y = 1
             count = 1
@@ -334,24 +332,36 @@ class RfqGen(tk.Tk):
                 for file in user_selected_file_paths:
                     # folder is get or created and file is copied to this folder
                     file_path_to_add_to_rfq = self.transfer_file_to_folder(destination_path, file)
-                    destination_paths.append(file_path_to_add_to_rfq)
+                    path = file_path_to_add_to_rfq.lower()
+                    if "_pl_" in path or "spdl" in path or "psdl" in path or "pl" in os.path.basename(path):
+                        path_dict[file_path_to_add_to_rfq] = 26
+                    elif "dwg" in path or "drw" in path:
+                        path_dict[file_path_to_add_to_rfq] = 27
+                    elif "step" in path or "stp" in path:
+                        path_dict[file_path_to_add_to_rfq] = 30
+                    elif "zsp" in path or "speco" in path:
+                        path_dict[file_path_to_add_to_rfq] = 33
+                    elif ".cat" in path:
+                        path_dict[file_path_to_add_to_rfq] = 16
+                    else:
+                        path_dict[file_path_to_add_to_rfq] = None
 
-                for file in destination_paths:
+                for file, pk in path_dict.items():
                     if count==1:
                         if resricted:
-                            self.data_base_conn.upload_documents(file, rfq_fk=rfq_pk, document_type_fk=6, secure_document=1)
+                            self.data_base_conn.upload_documents(file, rfq_fk=rfq_pk, document_type_fk=6, secure_document=1, document_group_pk=pk)
                         else:
-                            self.data_base_conn.upload_documents(file, rfq_fk=rfq_pk, document_type_fk=6)
+                            self.data_base_conn.upload_documents(file, rfq_fk=rfq_pk, document_type_fk=6, document_group_pk=pk)
                 count+=1
 
                 item_pk = self.data_base_conn.get_or_create_item(part_number, description=description, purchase=0, service_item=0, manufactured_item=1)
-                matching_paths = [path for path in destination_paths if part_number in path]
+                matching_paths = {path:pk for path,pk in path_dict.items() if part_number in path}
                  
-                for url in matching_paths:
+                for url, pk in matching_paths.items():
                         if resricted:
-                            self.data_base_conn.upload_documents(url, item_fk=item_pk, document_type_fk=2, secure_document=1)
+                            self.data_base_conn.upload_documents(url, item_fk=item_pk, document_type_fk=2, secure_document=1, document_group_pk=pk)
                         else:
-                            self.data_base_conn.upload_documents(url, item_fk=item_pk, document_type_fk=2)
+                            self.data_base_conn.upload_documents(url, item_fk=item_pk, document_type_fk=2, document_group_pk=pk)
                 
                 quote_pk = self.data_base_conn.create_quote(party_pk, item_pk, 0, part_number)
                 self.data_base_conn.quote_operation(quote_pk)
@@ -383,11 +393,11 @@ class RfqGen(tk.Tk):
                     for j in pk_value[1:]:
                         if j:
                             self.data_base_conn.insert_part_details_in_item(j, part_number, dict_values)
-                            for url in matching_paths:
+                            for url, pk in matching_paths.items():
                                 if resricted:
-                                    self.data_base_conn.upload_documents(url, item_fk=j, document_type_fk=2, secure_document=1)
+                                    self.data_base_conn.upload_documents(url, item_fk=j, document_type_fk=2, secure_document=1, document_group_pk=pk, print_with_purchase_order=1)
                                 else:
-                                    self.data_base_conn.upload_documents(url, item_fk=j, document_type_fk=2)
+                                    self.data_base_conn.upload_documents(url, item_fk=j, document_type_fk=2, document_group_pk=pk, print_with_purchase_order=1)
                     self.data_base_conn.insert_part_details_in_item(pk_value[0], part_number, dict_values, item_type='Material')
             
             messagebox.showinfo("Success", f"RFQ generated successfully! RFQ Number: {rfq_pk}")
