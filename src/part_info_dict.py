@@ -32,7 +32,7 @@ def pk_info_dict(filepath):
             if result:
                 mat_pk = result[0][0]  # Assuming execute_query returns a list of tuples
             else:
-                pk = data_base_conn.get_or_create_item(a, service_item=0, purchase=0, manufactured_item=1, item_type_fk= 2, only_create = 1)
+                pk = data_base_conn.get_or_create_item(a, service_item=0, purchase=1, manufactured_item=0, item_type_fk= 2, only_create = 1, bulk_ship=0, ship_loose=0)
                 mat_pk = pk
 
         if b:

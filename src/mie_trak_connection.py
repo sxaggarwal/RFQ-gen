@@ -107,26 +107,26 @@ class MieTrak:
             print(e)
         return rfq_pk
         
-    def upload_documents(self, document_path: str, rfq_fk=None, item_fk=None):
+    def upload_documents(self, document_path: str, rfq_fk=None, item_fk=None, document_type_fk=None, secure_document=0):
         """ Function for attaching documents """
         if not rfq_fk and not item_fk:
             raise TypeError("Both values can not be None")
         
         val = rfq_fk if item_fk is None else item_fk
-        query = (f"INSERT INTO DOCUMENT (URL, {"RequestForQuoteFK" if item_fk is None else "ItemFk"}, Active) VALUES ("
-                 f"?,?,?)")
-        self.cursor.execute(query, (document_path, val, 1))
+        query = (f"INSERT INTO DOCUMENT (URL, {"RequestForQuoteFK" if item_fk is None else "ItemFk"}, Active, DocumentTypeFK, SecureDocument,) VALUES ("
+                 f"?,?,?,?,?)")
+        self.cursor.execute(query, (document_path, val, 1, document_type_fk, secure_document))
         self.conn.commit()
 
-    def get_or_create_item(self, part_number: str, item_type_fk=1, mps_item=1, purchase=1, forecast_on_mrp=1, mps_on_mrp=1, service_item=1, unit_of_measure_set_fk=1, vendor_unit=1.0, manufactured_item=0, calculation_type_fk=17, inventoriable=1, purchase_order_comment=None,  description=None, comment=None, only_create = None):
+    def get_or_create_item(self, part_number: str, item_type_fk=1, mps_item=1, purchase=1, forecast_on_mrp=1, mps_on_mrp=1, service_item=1, unit_of_measure_set_fk=1, vendor_unit=1.0, manufactured_item=0, calculation_type_fk=17, inventoriable=1, purchase_order_comment=None,  description=None, comment=None, only_create=None, bulk_ship=1, ship_loose=1):
         """ Fetches ItemPK if the item exists else it creates the item and then returns the ItemPK"""
         if only_create == 1:
             item_inventory_pk = self.create_item_inventory()
             query = ("insert into item (ItemInventoryFk, PartNumber, ItemTypeFK, Description, Comment, MPSItem, "
                      "Purchase, ForecastOnMRP, MPSOnMRP, ServiceItem, PurchaseOrderComment, UnitOfMeasureSetFK, "
-                     "VendorUnit, ManufacturedItem, CalculationTypeFK, Inventoriable) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "
-                     "?, ?, ?, ?, ?, ?, ?, ?)")
-            self.cursor.execute(query, (item_inventory_pk, part_number, item_type_fk, description, comment, mps_item, purchase, forecast_on_mrp, mps_on_mrp, service_item, purchase_order_comment, unit_of_measure_set_fk, vendor_unit, manufactured_item, calculation_type_fk, inventoriable))
+                     "VendorUnit, ManufacturedItem, CalculationTypeFK, Inventoriable, BulkShip, ShipLoose) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "
+                     "?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            self.cursor.execute(query, (item_inventory_pk, part_number, item_type_fk, description, comment, mps_item, purchase, forecast_on_mrp, mps_on_mrp, service_item, purchase_order_comment, unit_of_measure_set_fk, vendor_unit, manufactured_item, calculation_type_fk, inventoriable, bulk_ship, ship_loose))
             self.cursor.execute("SELECT IDENT_CURRENT('Item')")
             result = self.cursor.fetchone()[0]
             self.conn.commit()
@@ -140,10 +140,10 @@ class MieTrak:
                 item_inventory_pk = self.create_item_inventory()
                 query = ("insert into item (ItemInventoryFk, PartNumber, ItemTypeFK, Description, Comment, MPSItem, "
                         "Purchase, ForecastOnMRP, MPSOnMRP, ServiceItem, PurchaseOrderComment, UnitOfMeasureSetFK, "
-                        "VendorUnit, ManufacturedItem, CalculationTypeFK, Inventoriable) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "
-                        "?, ?, ?, ?, ?, ?, ?, ?)")
+                        "VendorUnit, ManufacturedItem, CalculationTypeFK, Inventoriable, BulkShip, ShipLoose) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "
+                        "?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
                 
-                self.cursor.execute(query, (item_inventory_pk, part_number, item_type_fk, description, comment, mps_item, purchase, forecast_on_mrp, mps_on_mrp, service_item, purchase_order_comment, unit_of_measure_set_fk, vendor_unit, manufactured_item, calculation_type_fk, inventoriable))
+                self.cursor.execute(query, (item_inventory_pk, part_number, item_type_fk, description, comment, mps_item, purchase, forecast_on_mrp, mps_on_mrp, service_item, purchase_order_comment, unit_of_measure_set_fk, vendor_unit, manufactured_item, calculation_type_fk, inventoriable, bulk_ship, ship_loose))
                 self.cursor.execute("SELECT IDENT_CURRENT('Item')")
                 result = self.cursor.fetchone()[0]
                 self.conn.commit()
@@ -167,8 +167,8 @@ class MieTrak:
             """ """
             po_comment = f" Dimensions (L x W x T): {values[0]} x {values[2]} x {values[1]}"
             try:
-                query = "UPDATE Item SET StockLength=?, Thickness=?, StockWidth=?, Weight=?, PartLength=?, PartWidth=?, PurchaseOrderComment=? WHERE ItemPK = ?"
-                parameters = values[0:4] + (values[0], values[2], po_comment, item_pk,)
+                query = "UPDATE Item SET StockLength=?, Thickness=?, StockWidth=?, Weight=?, PartLength=?, PartWidth=?, PurchaseOrderComment=?, ManufacturedItem=?, Purchase=?, ShipLoose=?, BulkShip=? WHERE ItemPK = ?"
+                parameters = values[0:4] + (values[0], values[2], po_comment,0,1,0,0, item_pk,)
                 self.cursor.execute(query, parameters)
                 self.conn.commit()
             except pyodbc.Error as e:

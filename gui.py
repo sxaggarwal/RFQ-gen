@@ -62,12 +62,17 @@ class RfqGen(tk.Tk):
         browse_button_part_list = tk.Button(self, text="Browse Files", command=lambda: self.browse_files_parts_requested("All files", self.file_path_PL_entry))
         browse_button_part_list.grid(row=11, column=0)
 
+        # Checkbox for ITAR RESTRICTED
+        self.itar_restricted_var = tk.BooleanVar()
+        self.itar_restricted_checkbox = tk.Checkbutton(self, text="ITAR RESTRICTED", variable=self.itar_restricted_var)
+        self.itar_restricted_checkbox.grid(row=12, column=0)
+
         # main button
         generate_button = tk.Button(self, text="Generate RFQ", command=self.generate_rfq)
-        generate_button.grid(row=12, column=0)
+        generate_button.grid(row=13, column=0)
 
         sending_email_button = tk.Button(self, text="Send Email", command=self.sending_email)
-        sending_email_button.grid(row=13, column=0)
+        sending_email_button.grid(row=14, column=0)
     
     def update_customer_info(self, event=None):
         """Update customer information label when a customer is selected."""
@@ -318,23 +323,35 @@ class RfqGen(tk.Tk):
 
             qty_data = dict(zip(parts, qty))
 
+            resricted = False
+
             for part_number, description in part_description_data.items():
-                destination_path = rf'y:\PDM\Non-restricted\{self.customer_select_box.get()}\{part_number}'
+                if self.itar_restricted_var.get():
+                    destination_path = rf'y:\PDM\Restricted\{self.customer_select_box.get()}\{part_number}'
+                    resricted = True
+                else:
+                    destination_path = rf'y:\PDM\Non-restricted\{self.customer_select_box.get()}\{part_number}'
                 for file in user_selected_file_paths:
-                    if count==1:
                     # folder is get or created and file is copied to this folder
-                        file_path_to_add_to_rfq = self.transfer_file_to_folder(destination_path, file)
-                        # we will then add the filepath to the rfq created above
-                        destination_paths.append(file_path_to_add_to_rfq)
-                        self.data_base_conn.upload_documents(file_path_to_add_to_rfq, rfq_fk=rfq_pk)
-                
+                    file_path_to_add_to_rfq = self.transfer_file_to_folder(destination_path, file)
+                    destination_paths.append(file_path_to_add_to_rfq)
+
+                for file in destination_paths:
+                    if count==1:
+                        if resricted:
+                            self.data_base_conn.upload_documents(file, rfq_fk=rfq_pk, document_type_fk=6, secure_document=1)
+                        else:
+                            self.data_base_conn.upload_documents(file, rfq_fk=rfq_pk, document_type_fk=6)
                 count+=1
 
                 item_pk = self.data_base_conn.get_or_create_item(part_number, description=description, purchase=0, service_item=0, manufactured_item=1)
                 matching_paths = [path for path in destination_paths if part_number in path]
                  
                 for url in matching_paths:
-                    self.data_base_conn.upload_documents(url, item_fk=item_pk)
+                        if resricted:
+                            self.data_base_conn.upload_documents(url, item_fk=item_pk, document_type_fk=2, secure_document=1)
+                        else:
+                            self.data_base_conn.upload_documents(url, item_fk=item_pk, document_type_fk=2)
                 
                 quote_pk = self.data_base_conn.create_quote(party_pk, item_pk, 0, part_number)
                 self.data_base_conn.quote_operation(quote_pk)
@@ -367,7 +384,10 @@ class RfqGen(tk.Tk):
                         if j:
                             self.data_base_conn.insert_part_details_in_item(j, part_number, dict_values)
                             for url in matching_paths:
-                                self.data_base_conn.upload_documents(url, item_fk=j)
+                                if resricted:
+                                    self.data_base_conn.upload_documents(url, item_fk=j, document_type_fk=2, secure_document=1)
+                                else:
+                                    self.data_base_conn.upload_documents(url, item_fk=j, document_type_fk=2)
                     self.data_base_conn.insert_part_details_in_item(pk_value[0], part_number, dict_values, item_type='Material')
             
             messagebox.showinfo("Success", f"RFQ generated successfully! RFQ Number: {rfq_pk}")
