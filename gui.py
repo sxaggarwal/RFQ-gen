@@ -296,56 +296,65 @@ class RfqGen(tk.Tk):
     
     def generate_rfq(self):
         """ Main function for Generating RFQ, adding line items and creating a quote """
-        if self.customer_select_box.get() and self.file_path_PR_entry.get(0):  
-            party_pk = self.selected_customer_partypk
+        if self.customer_select_box.get() and self.file_path_PR_entry.get(0):  #checking if user uploaded the part request excel file and selected the customer or not
+            party_pk = self.selected_customer_partypk    #getting the pk of the selected customer
+            # getting address details for the selected customer 
             billing_details = self.data_base_conn.get_address_of_party(party_pk)
             state, country = self.data_base_conn.get_state_and_country(party_pk)
-            customer_rfq_number = self.rfq_number_text.get()
+            customer_rfq_number = self.rfq_number_text.get() # the customer rfq number that user enters
             rfq_pk = self.data_base_conn.insert_into_rfq(
                 party_pk, billing_details[0], billing_details[0], billing_details[1], billing_details[2], billing_details[3], billing_details[4], billing_details[5], billing_details[6], state[0][0], country[0][0], customer_rfq_number=customer_rfq_number,
-            )
-            path_dict = {}
-            user_selected_file_paths = list(self.file_path_PR_entry.get(0, tk.END) + self.file_path_PL_entry.get(0, tk.END))
+            ) #creating the rfq with selected customer details
+            path_dict = {} #dictionary with file path as key and the pk of the document group
+            user_selected_file_paths = list(self.file_path_PR_entry.get(0, tk.END) + self.file_path_PL_entry.get(0, tk.END)) #making a list of file paths that user uploaded
             i = 1
             y = 1
             count = 1
-            my_dict = pk_info_dict(self.file_path_PR_entry.get(0, tk.END)[0])
+            my_dict = pk_info_dict(self.file_path_PR_entry.get(0, tk.END)[0]) # returns a dict with part_number as key and mat_pk, ht_pk, fin_pk as values
 
-            info_dict = part_info(self.file_path_PR_entry.get(0, tk.END)[0])
+            info_dict = part_info(self.file_path_PR_entry.get(0, tk.END)[0]) # returns a dict with the dimensional and other details as values and part number as key
 
-            parts = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "Part")
+            # extracts parts from the excel file and checks for Nan values. If any, replaces with None
+            parts = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "Part") 
             for k in range(len(parts)):
                 if isinstance(parts[k], float) and math.isnan(parts[k]):
                     parts[k] = None
             
+            # extracts description from the excel file and checks for Nan values. If any, replaces with None
             descriptions = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "DESCRIPTION")
             for k in range(len(descriptions)):
                 if isinstance(descriptions[k], float) and math.isnan(descriptions[k]):
                     descriptions[k] = None
             
+            # dictionary with part as key and description as values
             part_description_data = dict(zip(parts, descriptions))
 
+            # extracts quantity required from the excel file and checks for Nan values. If any, replaces with None
             qty = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "QuantityRequired")
             for k in range(len(qty)):
                 if isinstance(qty[k], float) and math.isnan(qty[k]):
                     qty[k] = None
+            # dictionary with part as key and qty as values
             qty_data = dict(zip(parts, qty))
 
+            # extracts assembly part info from the excel file and checks for Nan values. If any, replaces with None
             assy_for = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "AssyFor")
             for k in range(len(assy_for)):
                 if isinstance(assy_for[k], float) and math.isnan(assy_for[k]):
                     assy_for[k] = None
-
+            # dictionary with part as key and assembly part info as values
             assy_dict = dict(zip(parts, assy_for))
             resricted = False
             quote_pk_dict = {}
 
             for part_number, description in part_description_data.items():
-                if self.itar_restricted_var.get():
+                if self.itar_restricted_var.get(): # checking if the user clicked on Restricted box or not and based on that destination path is decided
                     destination_path = rf'y:\PDM\Restricted\{self.customer_select_box.get()}\{part_number}'
                     resricted = True
                 else:
                     destination_path = rf'y:\PDM\Non-restricted\{self.customer_select_box.get()}\{part_number}'
+                
+                # creating a dictionary with file path as key and the pk of the document group
                 for file in user_selected_file_paths:
                     # folder is get or created and file is copied to this folder
                     file_path_to_add_to_rfq = self.transfer_file_to_folder(destination_path, file)
@@ -362,7 +371,8 @@ class RfqGen(tk.Tk):
                         path_dict[file_path_to_add_to_rfq] = 16
                     else:
                         path_dict[file_path_to_add_to_rfq] = None
-
+                
+                # uploading documents to RFQ with a counter so that the same document is not uploaded more than once
                 for file, pk in path_dict.items():
                     if count==1:
                         if resricted:
@@ -370,8 +380,11 @@ class RfqGen(tk.Tk):
                         else:
                             self.data_base_conn.upload_documents(file, rfq_fk=rfq_pk, document_type_fk=6, document_group_pk=pk)
                 count+=1
-
+                
+                # searching for the part on MIE Trak and returns the PK, if the part doesn't exist then it creates an item and returns the pk
                 item_pk = self.data_base_conn.get_or_create_item(part_number, description=description, purchase=0, service_item=0, manufactured_item=1)
+                
+                # uploading the documents of the item or part
                 matching_paths = {path:pk for path,pk in path_dict.items() if part_number in path}
                  
                 for url, pk in matching_paths.items():
@@ -380,18 +393,20 @@ class RfqGen(tk.Tk):
                         else:
                             self.data_base_conn.upload_documents(url, item_fk=item_pk, document_type_fk=2, document_group_pk=pk)
                 
+                # creating a quote for the Part and getting QuotePk
                 quote_pk = self.data_base_conn.create_quote(party_pk, item_pk, 0, part_number)
-                quote_pk_dict[part_number] = quote_pk
-                self.data_base_conn.quote_operation(quote_pk)
+                quote_pk_dict[part_number] = quote_pk #creating a dictionary with part as key and quote pk as value
+                self.data_base_conn.quote_operation(quote_pk) # adds the operation template 494 to the quotes
 
-                a = [6, 21, 22]  # IssueMat, HT, FIN
-                quote_assembly_fk = []
+                a = [6, 21, 22]  # Sequence number in Operations for IssueMat, HT, FIN resp
+                quote_assembly_fk = [] # list for storing the Quote Assembly PK for the above sequence number of a quote
 
                 for x in a:
                     quote_assembly_pk = self.data_base_conn.execute_query(f"SELECT QuoteAssemblyPK FROM QuoteAssembly WHERE QuoteFK = {quote_pk} AND SequenceNumber = {x}")
             
-                    quote_assembly_fk.append(quote_assembly_pk[0][0])
+                    quote_assembly_fk.append(quote_assembly_pk[0][0]) # list of Quote Assembly pk in order MAT, HT, FIN
 
+                # creating a Bill of Material for a quote
                 if part_number in my_dict:
                     dict_values = my_dict[part_number]
                     for j, k, l in zip(dict_values, quote_assembly_fk, a):
@@ -399,6 +414,7 @@ class RfqGen(tk.Tk):
                             self.data_base_conn.create_bom_quote(quote_pk, j, k, l, y)
                             y+=1
 
+                # checking if the Assy or Detail and creating the line item and adding quotes of assembly to the BOM of Assy Line Quotes
                 if assy_dict.get(part_number) is None:
                     rfq_line_pk = self.data_base_conn.create_rfq_line_item(item_pk, rfq_pk, i, quote_pk, quantity=qty_data[part_number])
                     i+=1
@@ -408,7 +424,7 @@ class RfqGen(tk.Tk):
                     fk = quote_pk_dict.get(part_num)
                     self.data_base_conn.create_assy_quote(quote_pk, fk, qty_req=qty_data[part_number] )
                 
-                
+                # Inserting dimensional and other values to the item table for a part and attaching Document to OP, HT, FIN
                 if part_number in info_dict:
                     dict_values = info_dict[part_number]
                     self.data_base_conn.insert_part_details_in_item(item_pk, part_number, dict_values)
@@ -426,7 +442,7 @@ class RfqGen(tk.Tk):
             messagebox.showinfo("Success", f"RFQ generated successfully! RFQ Number: {rfq_pk}")
             answer = messagebox.askyesno("Confirmation", "Do you want to send an email to the supplier for a quote?")
             if answer:
-                self.show_selection()
+                self.show_selection() #Email function
             else:
                 self.file_path_PL_entry.delete(0, tk.END)
                 self.file_path_PR_entry.delete(0, tk.END)
