@@ -207,11 +207,16 @@ class MieTrak:
         self.conn.commit()
         return return_pk
     
-    def quote_operations_template(self):
+    def quote_operations_template(self, quote_fk = None):
         """ Fetches the operation template 494 for the quote """
         self.all_columns = self.get_columns_quote()
-        query = f"SELECT {self.all_columns} FROM QuoteAssembly WHERE QuoteFK = 494 and ItemFk IS NULL "
-        template = self.execute_query(query)
+        if quote_fk:
+            query = f"SELECT {self.all_columns} FROM QuoteAssembly WHERE QuoteFK = {quote_fk}"
+            template = self.execute_query(query)
+            
+        else:
+            query = f"SELECT {self.all_columns} FROM QuoteAssembly WHERE QuoteFK = 494 and ItemFk IS NULL "
+            template = self.execute_query(query)
         return template
 
     def get_columns_quote(self):
@@ -219,7 +224,7 @@ class MieTrak:
         query = f'''
             SELECT COLUMN_NAME
             FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_NAME = 'QuoteAssembly' AND COLUMN_NAME NOT IN ('QuoteFK', 'QuoteAssemblyPK', 'LastAccess')
+            WHERE TABLE_NAME = 'QuoteAssembly' AND COLUMN_NAME NOT IN ('QuoteFK', 'QuoteAssemblyPK', 'LastAccess', 'ParentQuoteAssemblyFK', 'ParentQuoteFK')
         '''
         columns = self.execute_query(query)
         col = [row.COLUMN_NAME for row in columns]
@@ -239,6 +244,18 @@ class MieTrak:
         query = "SELECT ShortName, Email from Party where PartyPK = ?"
         results = self.execute_query(query, party_pk)
         return results[0]
+    
+    def create_assy_quote(self, quote_to_be_added, quotefk, qty_req = 1):
+        query = "INSERT INTO QuoteAssembly (QuoteFK, ItemQuoteFK, SequenceNumber, Pull, Lock, OrderBy, QuantityRequired) VALUES (?,?,?,?,?,?,?)"
+        self.cursor.execute(query, (quotefk, quote_to_be_added, 1,0,0,1,qty_req))
+        self.cursor.execute("SELECT IDENT_CURRENT('QuoteAssembly')")
+        return_pk = self.cursor.fetchone()[0]
+        self.conn.commit()
+        template = self.quote_operations_template(quote_fk=quote_to_be_added)
+        for data in template:
+            query = f"INSERT INTO QuoteAssembly (QuoteFK, ParentQuoteAssemblyFK, ParentQuoteFK, {self.all_columns}) VALUES ({','.join(['?']*(len(data)+3))})"
+            self.cursor.execute(query, (quotefk, return_pk, quote_to_be_added) + tuple(data))
+            self.conn.commit()        
     
 
     def create_bom_quote(self, quote_fk, item_fk, quote_assembly_seq_number_fk, sequence_number, order_by,

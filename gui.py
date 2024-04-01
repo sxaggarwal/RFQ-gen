@@ -16,7 +16,7 @@ class RfqGen(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("RFQGen")
-        self.geometry("305x400")
+        self.geometry("305x415")
 
         self.data_base_conn = MieTrak() 
         self.customer_names = [customer[0] for customer in self.data_base_conn.execute_query("select name from party")]
@@ -296,7 +296,7 @@ class RfqGen(tk.Tk):
     
     def generate_rfq(self):
         """ Main function for Generating RFQ, adding line items and creating a quote """
-        if self.customer_select_box.get() and self.file_path_PR_entry.get(0):
+        if self.customer_select_box.get() and self.file_path_PR_entry.get(0):  
             party_pk = self.selected_customer_partypk
             billing_details = self.data_base_conn.get_address_of_party(party_pk)
             state, country = self.data_base_conn.get_state_and_country(party_pk)
@@ -314,14 +314,31 @@ class RfqGen(tk.Tk):
             info_dict = part_info(self.file_path_PR_entry.get(0, tk.END)[0])
 
             parts = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "Part")
+            for k in range(len(parts)):
+                if isinstance(parts[k], float) and math.isnan(parts[k]):
+                    parts[k] = None
+            
             descriptions = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "DESCRIPTION")
+            for k in range(len(descriptions)):
+                if isinstance(descriptions[k], float) and math.isnan(descriptions[k]):
+                    descriptions[k] = None
+            
             part_description_data = dict(zip(parts, descriptions))
 
             qty = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "QuantityRequired")
-
+            for k in range(len(qty)):
+                if isinstance(qty[k], float) and math.isnan(qty[k]):
+                    qty[k] = None
             qty_data = dict(zip(parts, qty))
 
+            assy_for = extract_from_excel(self.file_path_PR_entry.get(0, tk.END)[0], "AssyFor")
+            for k in range(len(assy_for)):
+                if isinstance(assy_for[k], float) and math.isnan(assy_for[k]):
+                    assy_for[k] = None
+
+            assy_dict = dict(zip(parts, assy_for))
             resricted = False
+            quote_pk_dict = {}
 
             for part_number, description in part_description_data.items():
                 if self.itar_restricted_var.get():
@@ -364,6 +381,7 @@ class RfqGen(tk.Tk):
                             self.data_base_conn.upload_documents(url, item_fk=item_pk, document_type_fk=2, document_group_pk=pk)
                 
                 quote_pk = self.data_base_conn.create_quote(party_pk, item_pk, 0, part_number)
+                quote_pk_dict[part_number] = quote_pk
                 self.data_base_conn.quote_operation(quote_pk)
 
                 a = [6, 21, 22]  # IssueMat, HT, FIN
@@ -374,17 +392,22 @@ class RfqGen(tk.Tk):
             
                     quote_assembly_fk.append(quote_assembly_pk[0][0])
 
-                rfq_line_pk = self.data_base_conn.create_rfq_line_item(item_pk, rfq_pk, i, quote_pk, quantity=qty_data[part_number])
-                i+=1
-
-                self.data_base_conn.rfq_line_quantity(rfq_line_pk, qty_data[part_number])
-
                 if part_number in my_dict:
                     dict_values = my_dict[part_number]
                     for j, k, l in zip(dict_values, quote_assembly_fk, a):
                         if j is not None:
                             self.data_base_conn.create_bom_quote(quote_pk, j, k, l, y)
                             y+=1
+
+                if assy_dict.get(part_number) is None:
+                    rfq_line_pk = self.data_base_conn.create_rfq_line_item(item_pk, rfq_pk, i, quote_pk, quantity=qty_data[part_number])
+                    i+=1
+                    self.data_base_conn.rfq_line_quantity(rfq_line_pk, qty_data[part_number])
+                else:
+                    part_num = assy_dict[part_number]
+                    fk = quote_pk_dict.get(part_num)
+                    self.data_base_conn.create_assy_quote(quote_pk, fk, qty_req=qty_data[part_number] )
+                
                 
                 if part_number in info_dict:
                     dict_values = info_dict[part_number]
@@ -404,10 +427,10 @@ class RfqGen(tk.Tk):
             answer = messagebox.askyesno("Confirmation", "Do you want to send an email to the supplier for a quote?")
             if answer:
                 self.show_selection()
-            
-            self.file_path_PL_entry.delete(0, tk.END)
-            # self.file_path_PR_entry.delete(0, tk.END)
-            self.rfq_number_text.delete(0, tk.END)
+            else:
+                self.file_path_PL_entry.delete(0, tk.END)
+                self.file_path_PR_entry.delete(0, tk.END)
+                self.rfq_number_text.delete(0, tk.END)
 
         else:
             messagebox.showerror("ERROR", "Select Customer/ Upload Parts Requested File")
